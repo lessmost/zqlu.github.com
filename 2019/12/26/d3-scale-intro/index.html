@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>d3-scale-intro | zqlu&#39;s notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="WIP  d3-scale是 d3 库下一个独立模块：它是图形中常用的 Scale 的实现，在 d3 的中文文档中，Scale 被翻译成 比例尺。Scale 负责将数据维度映射到图形通道，如在散点图中，将数据中的数值映射为图形中点的位置像素信息，这就是 Scale 实现的，除了用来映射计算位置这样的数值信息，Scale 也可以用来映射计算其他非数值信息：如颜色值、线条绘制宽度、符号大小尺寸等。不仅">
+<meta property="og:type" content="article">
+<meta property="og:title" content="d3-scale-intro">
+<meta property="og:url" content="https://zqlu.github.io/2019/12/26/d3-scale-intro/index.html">
+<meta property="og:site_name" content="zqlu&#39;s notes">
+<meta property="og:description" content="WIP  d3-scale是 d3 库下一个独立模块：它是图形中常用的 Scale 的实现，在 d3 的中文文档中，Scale 被翻译成 比例尺。Scale 负责将数据维度映射到图形通道，如在散点图中，将数据中的数值映射为图形中点的位置像素信息，这就是 Scale 实现的，除了用来映射计算位置这样的数值信息，Scale 也可以用来映射计算其他非数值信息：如颜色值、线条绘制宽度、符号大小尺寸等。不仅">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zqlu.github.io/2019/12/26/images/d3-scales.jpg">
+<meta property="article:published_time" content="2019-12-26T19:45:54.000Z">
+<meta property="article:modified_time" content="2021-03-01T21:09:57.417Z">
+<meta property="article:author" content="zqlu">
+<meta property="article:tag" content="Visualization">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zqlu.github.io/2019/12/26/images/d3-scales.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="zqlu&#39;s notes" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-151328471-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">zqlu&#39;s notes</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zqlu.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-d3-scale-intro" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/12/26/d3-scale-intro/" class="article-date">
+  <time datetime="2019-12-26T19:45:54.000Z" itemprop="datePublished">2019-12-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Visualization/">Visualization</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      d3-scale-intro
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>WIP</strong></p>
+<blockquote>
+<p><a href="https://github.com/d3/d3-scale" target="_blank" rel="noopener">d3-scale</a>是 d3 库下一个独立模块：它是图形中常用的 Scale 的实现，在 d3 的中文文档中，<code>Scale</code> 被翻译成 <code>比例尺</code>。Scale 负责将数据维度映射到图形通道，如在散点图中，将数据中的数值映射为图形中点的位置像素信息，这就是 Scale 实现的，除了用来映射计算位置这样的数值信息，Scale 也可以用来映射计算其他非数值信息：如颜色值、线条绘制宽度、符号大小尺寸等。不仅是数值类型数据，Scale 可以用在任何类型的数据上，如有命名的分类数据、或其他的离散数据。</p>
+</blockquote>
+<p>d3 中包括的 scale 如下：</p>
+<p><img src="../images/d3-scales.jpg" alt="d3 scales"></p>
+<h2 id="Scale-的定义"><a href="#Scale-的定义" class="headerlink" title="Scale 的定义"></a>Scale 的定义</h2><p>从数学角度来看，每一个 scale 可以看出如下函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">有 x ⊂ domain，y ⊂ range，scale f 满足</span><br><span class="line">y &#x3D; f(x)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>domain：原始数据中的数据集合，包括数值、分类数据、离散数据</li>
+<li>range：scale 映射后的集合</li>
+<li>f: scale 函数</li>
+<li>f’: invert 函数，大部分 scale 实现了 invert，即可由 range 中的值计算原数据 x = f’(y)</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2019/12/26/d3-scale-intro/" data-id="cklr2sz2v00067woq36sv5mhd" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/04/09/observable-introduction/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Observable 基础介绍
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/11/03/why-use-lowercase-for-filename/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">为什么 Google 代码规范推荐使用小写作为文件名</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Desktop/">Desktop</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Frontend/">Frontend</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/OpenSource/">OpenSource</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Python/">Python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tools/">Tools</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Visualization/">Visualization</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/note/">note</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Desktop/" rel="tag">Desktop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NodeJS/" rel="tag">NodeJS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/awk/" rel="tag">awk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http/" rel="tag">http</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Desktop/" style="font-size: 10px;">Desktop</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/NodeJS/" style="font-size: 10px;">NodeJS</a> <a href="/tags/Visualization/" style="font-size: 20px;">Visualization</a> <a href="/tags/awk/" style="font-size: 10px;">awk</a> <a href="/tags/css/" style="font-size: 10px;">css</a> <a href="/tags/http/" style="font-size: 10px;">http</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">五月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/06/">六月 2013</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/03/">三月 2012</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/04/15/python-service-thing/">[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/09/observable-introduction/">Observable 基础介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2019/12/26/d3-scale-intro/">d3-scale-intro</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/03/why-use-lowercase-for-filename/">为什么 Google 代码规范推荐使用小写作为文件名</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/10/taobao-nodejs-mirror/">使用淘宝 NodeJS 镜像加速 Electron Node-Sass 的安装速度</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 zqlu<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>

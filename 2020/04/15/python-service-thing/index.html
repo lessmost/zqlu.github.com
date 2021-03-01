@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了 | zqlu&#39;s notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="原文连接：https:&#x2F;&#x2F;rachelbythebay.com&#x2F;w&#x2F;2020&#x2F;03&#x2F;07&#x2F;costly&#x2F;文章基本是作者对 Python 语言下编写服务程序的一些吐槽，设计到如 Apache HTTPD 服务器的进程模型、Linux 的 fork、事件队列、用户态线程、进程调度和抢占、解释性语言等概念。作者吐槽了在有关这一些设计和院里的作用下，造成他的服务程序不可靠、效率低等问题。文章在 Hack">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了">
+<meta property="og:url" content="https://zqlu.github.io/2020/04/15/python-service-thing/index.html">
+<meta property="og:site_name" content="zqlu&#39;s notes">
+<meta property="og:description" content="原文连接：https:&#x2F;&#x2F;rachelbythebay.com&#x2F;w&#x2F;2020&#x2F;03&#x2F;07&#x2F;costly&#x2F;文章基本是作者对 Python 语言下编写服务程序的一些吐槽，设计到如 Apache HTTPD 服务器的进程模型、Linux 的 fork、事件队列、用户态线程、进程调度和抢占、解释性语言等概念。作者吐槽了在有关这一些设计和院里的作用下，造成他的服务程序不可靠、效率低等问题。文章在 Hack">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-15T23:31:00.000Z">
+<meta property="article:modified_time" content="2021-03-01T21:09:57.417Z">
+<meta property="article:author" content="zqlu">
+<meta property="article:tag" content="blog">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternative" href="/atom.xml" title="zqlu&#39;s notes" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-151328471-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">zqlu&#39;s notes</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zqlu.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-python-service-thing" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/04/15/python-service-thing/" class="article-date">
+  <time datetime="2020-04-15T23:31:00.000Z" itemprop="datePublished">2020-04-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Python/">Python</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      [译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>原文连接：<a href="https://rachelbythebay.com/w/2020/03/07/costly/" target="_blank" rel="noopener">https://rachelbythebay.com/w/2020/03/07/costly/</a><br>文章基本是作者对 Python 语言下编写服务程序的一些吐槽，设计到如 Apache HTTPD 服务器的进程模型、Linux 的 fork、事件队列、用户态线程、进程调度和抢占、解释性语言等概念。作者吐槽了在有关这一些设计和院里的作用下，造成他的服务程序不可靠、效率低等问题。文章在 HackerNews 用很多讨论，很多评论中给了一些建议和解决方法，更多的是可以学习到作者在一个常见的问题背后寻找的系统各个层次和根本原因，并保持愤怒的心态指出这些问题。当然，作者是不是对某些技术有偏见，个人认为也是有的。</p>
+</blockquote>
+<p>即使你正处在很糟糕的境况下，你也应该试着从中吸取教训。你永远不知道你的人生的目的是否是像那张海报上说的一样，实际上是为了警示别人。</p>
+<p>有许多事情我自己不会做，比如，我不会用 Python 语言来编写一个服务。当情况需要需要使用 RPC 时，我不会使用 web requests。当需要使用并行编程时，如果有操作系统级的线程，我就不会使用那些“绿色”(用户空间)线程。</p>
+<p>这些信念我已经有过一段时间了，但这些信念并没有根植与使用这些特定技术的经验中。我从更远来看，认定它们不好，并且，我还有其他的东西可以用，效果更好，我用起来也更开心。</p>
+<p>然而，实际上我现在有这样的经历：我可以作为那个警示者。但你使用 Pyhton、Gunicorn、Gevent、和 web request 来进行构建时，下面这些就会发生。</p>
+<p>所以你需要构建一个“服务”，对吧？而它就驻在这个盒子上。这个盒子有 4 个 CPU 核心，所以你正在运行 5 个它的实例，因为有人认为理解的实例数应该是 (CPU 核心数 + 1)。它到底是怎么做到的呢？</p>
+<p>好吧，首先，有些东西运行 <code>gunicorn</code>、做一些管家的事情，设置一个监听套接字，然后调用 <code>fork()</code> 。然后子进程全部引入你的“应用”——也就是你的“服务”的代码。然后，它们都做一些本地内务处理，把弄一下 epoll，然后开始等待监听套接字上线。到这个时候，你的每一个进程都在调用 <code>epoll_wait()</code> 后，在内核中睡眠。</p>
+<p>一个请求到达了我们的套接字。Linux 运行一个订阅者列表，所有的订阅者在做 epoll 的事情——所有的订阅者！—— 并告诉它们每一个人都有东西在外面等着。它们一个接一个地醒来，相隔几纳秒。</p>
+<p>然后，这五个进程都调用 <code>accpet4()</code>。因为只有一个连接在等待，所以它们之中只有一个会连接成功。很显然，第一个调用的将会胜出。第一个调用它的可能是第一个被内核唤醒的进程。(内核似乎是在做某种 FIFO 的事情，说一个那个进程一直赢，不过我跑题了。)</p>
+<p>胜出的进程继续在该套接字上执行 <code>recvfrom()</code>，找出它们想要的东西。这是某种”GET /blah HTTP/1.1”的东西，哦，这是一个 HTTP 请求。</p>
+<p>于此同时，其他的四个进程都得到了-1，errno 设置为 EAGAIN。因为——惊喜——没有其他的东西在那个套接字上等着。他们生了点闷气，踢了踢脚边的小石子，做了点家务，把一些数据打乱，重新设置他们的 epoll 集，在浪费了一点 CPU 时间后，却没有任何好处。</p>
+<p>这种情况，顺便说一下，早在 90 年代的时候，这种情况就被称为“雷霆万钧”，当时 Linux 的人们开始为 Windows NT 的 Web 服务器如何狠狠鞭打 Linux 而发狂。人们意识到，也许让每一个 Apache httpd 进程在调用 accept() 的阻塞然后在同一时间全部唤醒，并不是一个好主意。他们想出了信号量这样的技巧，和后来的 EPOLLONESHO。这样，它才变得更好了。</p>
+<p>在这个世界上，90 年代显然从未结束。</p>
+<p>让我们继续这个场景。1 号进程仍然在运行这个请求。反过来，它必须向网络中的一个“服务”发送一些东西。当它这样做的时候，“绿色线程”库中的东西注意了正在发生的事情，并说“嘿，你似乎在网络上等着，我们回去再干一些活怎么样？“。它推开了那个最初的请求，回到了 EPoll 的地方。</p>
+<p>而且，嘿，你知道吗，它实际上得到了另一个连接请求！它对请求做了 <code>recvfrom()</code>，并看到了它想要对东西，现在它开始相应这个请求。这涉及到一些数据的处理。也许是一些字符串操作。也可能是从文件系统中读取 JSON，然后反序列化成本地对象。也许是执行翻译操作。(也许，它已经做了很多次了，但它太笨了，没有办法把上次的数据保留下来。)管它是什么，都可以。关键是，它现在忙于响应这个新的请求。</p>
+<p>于此同时，那个最初的请求逐渐变老了。它发出的请求已经有响应了，但由于它一直没有机会回过来，新的请求还在酝酿中。最终，那个新的请求的计算完成了，它发回了一个回复：200 HTTP/1.1 OK 啦啦啦之类。</p>
+<p>然后，它做了一个奇怪的用户空间“线程”翻转回到原来请求的上下文中，并读取了响应。它咀嚼着这些数据，这是因为，这些数据是可怕的 JSON 之类的东西，而不是一个合理的，如有强类型的、没有歧义，容易反序列化的消息。时间在滴滴答答的流逝着。</p>
+<p>终于，它发回了这个原始请求的回复。但是，噢，这是什么：</p>
+<p>SIGPIPE。</p>
+<p>是的，那个原始请求的文件描述符的<code>write()</code>调用返回了-1，错误码是 EPIPE，同时也导致了一个 SIGPIPE 信号在进程中被触发。发生了什么事？</p>
+<p>事情是这样的，客户等的不耐烦了，就放弃了。他挂断了连接。由于网络上的连接死了，写的东西立刻就失败了。</p>
+<p>服务进程耸耸肩，关闭了连接，做了通常的请求后的清理工作，然后回去和大家一起等待。</p>
+<p>考虑到客户不知道这个请求是否真的完成了。这完全是一个复杂的协议的东西。客户现在唯一的选择就是再试一次，希望它能找到一个人，不要在他们的“对话”中跑掉，去处理新的请求。</p>
+<p>(我当然希望这些请求是幂等的)</p>
+<p>这到底是怎么回事？很多事情。太多的事情了。</p>
+<p>在任何一个给定的 Worker 内，在某一时刻它就只能执行一件事情。就是，它要不在处理一个请求，要么在处理另外一个请求。只有一个线程与这个进程关联。这不像它可以使用多个 CPU 核心去做其他的事情。这些并不是操作系统级别的线程，它们是用户空间态模拟的线程。如果其中一个在运行，那其他的就在等待，如果等待的那个线程有紧急的截止日期，那就糟糕了。</p>
+<p>那为什么不搞出一堆工作进程出来呢，就直接创建出比 CPU 核心数多的进程出来？嗯，这又扯到另外一回事了。所有这些工作进程都需要消耗内存。</p>
+<p>但是等等，你说，<code>fork()</code> 是在写的时候复制的。你不会有这些代码的全部拷贝。但是，你只说对了一办，fork() 的写复制实际上只作用与已经加载的页面。</p>
+<p>“什么？” 你大概回这样想。</p>
+<p>回去看一下。我是说它先 fork 然后再导入你的代码。你的应用(几乎可以肯定是 Python 解释器内的大部分代码)在 fork 的时候并不在内存中。它在这个时间点之后才被加载。</p>
+<p>“你到底是为什么要先 fork 再加载，而不是加载后再 fork ”</p>
+<p>大概就是在这个时候，你会发现有人在“导入时间”上做了一些调皮讨厌的事情，比如说在“导入时”需要执行的事情。也就是说，他们在 .py 文件中挂着一些代码，这些代码没有被任何函数或类之类的东西所封闭，这样一来，导入时就会运行它。这些代码会产生副作用。从来没有人告诉他们不要这么做。(很显然，从来没有任何人告诉他们不要去某些事情，鉴于我上面描述的那些摇摇欲坠的塔式架构决策。)</p>
+<p>这就是他们为什么要先 fork 再加载代码的原因。这就是为什么它们占用了这么多内存，你就是不能让这一堆愚蠢的东西在那一次处理一个请求，而不会就因为新的请求来了不能忽略它，而被拉回去。机器上就是没有足够的内存来让你这样做，所以，num_cpus + 1 就可以了。</p>
+<p>我不会去讨论当实际应该使用真正的 RPC 机制时，却整个在使用 Web 请求这整个疯狂的事情，这些情况包括，你知道的，比如强类型定义的数据类型和他们的操作方法，负载均衡，健康检查，队列深度确定，分箱，二选一，选择性先进先出，以及其他所有的在严格测试的系统中会出现的东西。这完全是另外一个帖子需要吐槽的东西了。</p>
+<p>那么，你如何让这种怪物继续运行呢？首先，你要确保你永远不允许它使用过多的 CPU，因为根据经验，这意味着你将会分心太多，在追逐另外一些请求的时候，会把一些请求弄超时。你把你的系统做成了在一个可怜的系统利用率水平上的“弹性扩展”，如整个机器的 25% ～ 30%间。</p>
+<p>你的云供应商很喜欢这样。他们告诉你：当然是这样，你需要运行更多的实例！买我们的系统来来帮助你管理成千上万个同样未被充分利用的虚拟机！它会给我们的创始人买一个可爱的象牙背抓器。</p>
+<p>这意味着你必须想出令人叹为观止的东西来应对成千上万的实例，而实际上这些事情可以用远比它小的多的东西来完成时，只要有合理的实施方案，就可以实现。你的一个朋友指出了指出清单，你就默默地流泪了。</p>
+<p>你可曾有过这样的体会，然后意识到，哎，我真希望自己什么都不知道？只要身处在可怕境地的人才应该经历过这种事，而且不惜搞懂这一点？是的，这就是我这样的人。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2020/04/15/python-service-thing/" data-id="cklr2sz35000d7woq7xyy0ax8" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/04/09/observable-introduction/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Observable 基础介绍</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Desktop/">Desktop</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Frontend/">Frontend</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/OpenSource/">OpenSource</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Python/">Python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tools/">Tools</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Visualization/">Visualization</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/note/">note</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Desktop/" rel="tag">Desktop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NodeJS/" rel="tag">NodeJS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/awk/" rel="tag">awk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http/" rel="tag">http</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Desktop/" style="font-size: 10px;">Desktop</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/NodeJS/" style="font-size: 10px;">NodeJS</a> <a href="/tags/Visualization/" style="font-size: 20px;">Visualization</a> <a href="/tags/awk/" style="font-size: 10px;">awk</a> <a href="/tags/css/" style="font-size: 10px;">css</a> <a href="/tags/http/" style="font-size: 10px;">http</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">五月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/06/">六月 2013</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/03/">三月 2012</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/04/15/python-service-thing/">[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/09/observable-introduction/">Observable 基础介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2019/12/26/d3-scale-intro/">d3-scale-intro</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/03/why-use-lowercase-for-filename/">为什么 Google 代码规范推荐使用小写作为文件名</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/10/taobao-nodejs-mirror/">使用淘宝 NodeJS 镜像加速 Electron Node-Sass 的安装速度</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 zqlu<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Use Awk to transpose text file | zqlu&#39;s notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="前话这段时间在做一些性能测试实验，经常使用bash，sed，awk 对实验结果做一些自动化的分析。这样就顺便学了一把bash awk什么的。空间的时候就想了一个使用awk对文本内容进行行列互换的脚本。 正文比如现在有文件test.txt内容为： 11    12      13      14 21    22      23      24 31    32      33      34使用a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Use Awk to transpose text file">
+<meta property="og:url" content="https://zqlu.github.io/2013/06/28/use-awk-to-transpose-text-file/index.html">
+<meta property="og:site_name" content="zqlu&#39;s notes">
+<meta property="og:description" content="前话这段时间在做一些性能测试实验，经常使用bash，sed，awk 对实验结果做一些自动化的分析。这样就顺便学了一把bash awk什么的。空间的时候就想了一个使用awk对文本内容进行行列互换的脚本。 正文比如现在有文件test.txt内容为： 11    12      13      14 21    22      23      24 31    32      33      34使用a">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2013-06-28T22:42:59.000Z">
+<meta property="article:modified_time" content="2021-03-01T21:09:57.417Z">
+<meta property="article:author" content="zqlu">
+<meta property="article:tag" content="awk">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternative" href="/atom.xml" title="zqlu&#39;s notes" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-151328471-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">zqlu&#39;s notes</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zqlu.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-use-awk-to-transpose-text-file" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/06/28/use-awk-to-transpose-text-file/" class="article-date">
+  <time datetime="2013-06-28T22:42:59.000Z" itemprop="datePublished">2013-06-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Tools/">Tools</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Use Awk to transpose text file
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="前话"><a href="#前话" class="headerlink" title="前话"></a>前话<a id="orgheadline1"></a></h1><p>这段时间在做一些性能测试实验，经常使用bash，sed，awk 对实验结果做一<br>些自动化的分析。这样就顺便学了一把bash awk什么的。空间的时候就想了一<br>个使用awk对文本内容进行行列互换的脚本。</p>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文<a id="orgheadline3"></a></h1><p>比如现在有文件test.txt内容为：</p>
+<pre><code>11    12      13      14
+21    22      23      24
+31    32      33      34</code></pre><p>使用awk脚本转换后的内容则为：</p>
+<pre><code>11    21      31
+12    22      32
+13    23      33
+14    24      34</code></pre><h2 id="脚本conv-awk"><a href="#脚本conv-awk" class="headerlink" title="脚本conv.awk"></a>脚本conv.awk<a id="orgheadline2"></a></h2><pre><code>#!/usr/bin/awk -f
+
+BEGIN {
+  lines=0
+  cols=0
+}
+
+{
+  if (NF &gt; cols)
+    cols=NF
+  lines++
+  for (i=1; i&lt;=NF; i++)
+    data[NR, i]=$i
+}
+
+END {
+  for (i=1; i&lt;=cols; i++) {
+    for (j=1; j&lt;=lines; j++)
+      printf data[j,1]&quot;\t&quot;
+    printf &quot;\n&quot;
+  }
+}</code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2013/06/28/use-awk-to-transpose-text-file/" data-id="cklr2sz3a000j7woqaaoe1spi" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/awk/" rel="tag">awk</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2013/06/28/my-openbox-configuration/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          我的 Openbox 窗口管理器的配置
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2012/03/20/git-dropbox-backup/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">私有git代码的备份</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Desktop/">Desktop</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Frontend/">Frontend</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/OpenSource/">OpenSource</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Python/">Python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tools/">Tools</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Visualization/">Visualization</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/note/">note</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Desktop/" rel="tag">Desktop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NodeJS/" rel="tag">NodeJS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/awk/" rel="tag">awk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http/" rel="tag">http</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Desktop/" style="font-size: 10px;">Desktop</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/NodeJS/" style="font-size: 10px;">NodeJS</a> <a href="/tags/Visualization/" style="font-size: 20px;">Visualization</a> <a href="/tags/awk/" style="font-size: 10px;">awk</a> <a href="/tags/css/" style="font-size: 10px;">css</a> <a href="/tags/http/" style="font-size: 10px;">http</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">五月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/06/">六月 2013</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/03/">三月 2012</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/04/15/python-service-thing/">[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/09/observable-introduction/">Observable 基础介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2019/12/26/d3-scale-intro/">d3-scale-intro</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/03/why-use-lowercase-for-filename/">为什么 Google 代码规范推荐使用小写作为文件名</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/10/taobao-nodejs-mirror/">使用淘宝 NodeJS 镜像加速 Electron Node-Sass 的安装速度</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 zqlu<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>

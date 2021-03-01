@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>我的 Openbox 窗口管理器的配置 | zqlu&#39;s notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="前话在折腾了Gnome, KDE, XFCE, LXDE后，现在还是用着LXDE, 其实主要原因是LXDE使用Openbox作为它的WM，和LXDE的简单。 Openbox的高度可配置性比GDM，KDM都好些，对窗口的管理更有力一些，当然如果你是最大化流，这个就没多大意义了。 窗口的移动首先我喜欢的配置就是对新建窗口的移动，如将窗口移动到屏幕中央，移动到屏幕左，右，上，下侧： &lt;keybin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="我的 Openbox 窗口管理器的配置">
+<meta property="og:url" content="https://zqlu.github.io/2013/06/28/my-openbox-configuration/index.html">
+<meta property="og:site_name" content="zqlu&#39;s notes">
+<meta property="og:description" content="前话在折腾了Gnome, KDE, XFCE, LXDE后，现在还是用着LXDE, 其实主要原因是LXDE使用Openbox作为它的WM，和LXDE的简单。 Openbox的高度可配置性比GDM，KDM都好些，对窗口的管理更有力一些，当然如果你是最大化流，这个就没多大意义了。 窗口的移动首先我喜欢的配置就是对新建窗口的移动，如将窗口移动到屏幕中央，移动到屏幕左，右，上，下侧： &lt;keybin">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2013-06-28T22:47:41.000Z">
+<meta property="article:modified_time" content="2021-03-01T21:09:57.417Z">
+<meta property="article:author" content="zqlu">
+<meta property="article:tag" content="Desktop">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternative" href="/atom.xml" title="zqlu&#39;s notes" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-151328471-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">zqlu&#39;s notes</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zqlu.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-my-openbox-configuration" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/06/28/my-openbox-configuration/" class="article-date">
+  <time datetime="2013-06-28T22:47:41.000Z" itemprop="datePublished">2013-06-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Desktop/">Desktop</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      我的 Openbox 窗口管理器的配置
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="前话"><a href="#前话" class="headerlink" title="前话"></a>前话<a id="orgheadline1"></a></h1><p>在折腾了Gnome, KDE, XFCE, LXDE后，现在还是用着LXDE, 其实主要原因是<br>LXDE使用Openbox作为它的WM，和LXDE的简单。</p>
+<p>Openbox的高度可配置性比GDM，KDM都好些，对窗口的管理更有力一些，当然<br>如果你是最大化流，这个就没多大意义了。</p>
+<h1 id="窗口的移动"><a href="#窗口的移动" class="headerlink" title="窗口的移动"></a>窗口的移动<a id="orgheadline2"></a></h1><p>首先我喜欢的配置就是对新建窗口的移动，如将窗口移动到屏幕中央，移动到<br>屏幕左，右，上，下侧：</p>
+<pre><code>&lt;keybind key=&quot;W-c&quot;&gt;
+  &lt;action name=&quot;MoveToCenter&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-w&quot;&gt;
+  &lt;action name=&quot;MoveToEdge&quot;&gt;
+    &lt;direction&gt;north&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-s&quot;&gt;
+  &lt;action name=&quot;MoveToEdge&quot;&gt;
+    &lt;direction&gt;south&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-a&quot;&gt;
+  &lt;action name=&quot;MoveToEdge&quot;&gt;
+    &lt;direction&gt;west&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-d&quot;&gt;
+  &lt;action name=&quot;MoveToEdge&quot;&gt;
+    &lt;direction&gt;east&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;</code></pre><p>这样就可以使用Windows+c将窗口移动到屏幕中央，<br>Windows+w将窗口移动到屏幕上侧，<br>Windows+s将窗口移动到屏幕下侧，<br>Windows+a将窗口移动到屏幕左侧，<br>Windows+d将窗口移动到屏幕右侧。</p>
+<h1 id="窗口的拉伸"><a href="#窗口的拉伸" class="headerlink" title="窗口的拉伸"></a>窗口的拉伸<a id="orgheadline3"></a></h1><p>除了将窗口移动到屏幕的各个方位外，还可以将窗口拉伸到某一边缘：</p>
+<pre><code>&lt;keybind key=&quot;W-Up&quot;&gt;
+  &lt;action name=&quot;GrowToEdge&quot;&gt;
+    &lt;direction&gt;north&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-Down&quot;&gt;
+  &lt;action name=&quot;GrowToEdge&quot;&gt;
+    &lt;direction&gt;south&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-Left&quot;&gt;
+  &lt;action name=&quot;GrowToEdge&quot;&gt;
+    &lt;direction&gt;west&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-Right&quot;&gt;
+  &lt;action name=&quot;GrowToEdge&quot;&gt;
+    &lt;direction&gt;east&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;</code></pre><p>这样就可以使用Windows+Left/Right/Up/Down将窗口拉伸到一定方向的边<br>缘了。</p>
+<p>当然，上面的这些特定的移动在都不能满足需要的时候就需要自己手动调整窗<br>口的位置了：</p>
+<pre><code>&lt;keybind key=&quot;W-m&quot;&gt;
+  &lt;action name=&quot;Move&quot;/&gt;
+&lt;/keybind&gt;</code></pre><p>这样就可以先按Windows+m然后使用方向键或者鼠标来移动窗口的位置了。</p>
+<h1 id="窗口的其他操作"><a href="#窗口的其他操作" class="headerlink" title="窗口的其他操作"></a>窗口的其他操作<a id="orgheadline4"></a></h1><p>当然对窗口的一般化的操作都是支持的如最大化，最小化，全屏什么的：</p>
+<pre><code>&lt;keybind key=&quot;W-F4&quot;&gt;
+  &lt;action name=&quot;Close&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-F8&quot;&gt;
+  &lt;action name=&quot;Resize&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-F9&quot;&gt;
+  &lt;action name=&quot;Iconify&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-F10&quot;&gt;
+  &lt;action name=&quot;ToggleMaximizeFull&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-F11&quot;&gt;
+  &lt;action name=&quot;ToggleDecorations&quot;/&gt;
+  &lt;action name=&quot;ToggleMaximizeFull&quot;/&gt;
+&lt;/keybind&gt;</code></pre><p>不过一般我很少使用最大化，常常使用的是水平方向或者垂直方向的单向最大<br>化窗口：</p>
+<pre><code>&lt;keybind key=&quot;W-h&quot;&gt;
+  &lt;action name=&quot;ToggleMaximize&quot;&gt;
+    &lt;direction&gt;horizontal&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-v&quot;&gt;
+  &lt;action name=&quot;ToggleMaximize&quot;&gt;
+    &lt;direction&gt;vertical&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;</code></pre><p>这样就可以使用Windows+h和Windows+v来将窗口水平最大化和垂直最大化。</p>
+<h1 id="程序启动快捷键"><a href="#程序启动快捷键" class="headerlink" title="程序启动快捷键"></a>程序启动快捷键<a id="orgheadline5"></a></h1><p>下面是一些常用的的程序启动快捷键，包括启动XTerm, 锁屏，截屏等操作：</p>
+<pre><code>&lt;keybind key=&quot;W-q&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;startupnotify&gt;
+      &lt;enabled&gt;true&lt;/enabled&gt;
+      &lt;name&gt;XTerm&lt;/name&gt;
+    &lt;/startupnotify&gt;
+    &lt;command&gt;xterm&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-t&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;startupnotify&gt;
+      &lt;enabled&gt;true&lt;/enabled&gt;
+      &lt;name&gt;XTerm&lt;/name&gt;
+    &lt;/startupnotify&gt;
+    &lt;command&gt;xterm -e screen&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-l&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;startupnotify&gt;
+      &lt;enabled&gt;true&lt;/enabled&gt;
+      &lt;name&gt;XScreensaver&lt;/name&gt;
+    &lt;/startupnotify&gt;
+    &lt;command&gt;xscreensaver-command -lock&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;Print&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;command&gt;scrot -e &apos;mv $f ~/screenshot/&apos;&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-Print&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;command&gt;scrot -b -s -e &apos;mv $f ~/screenshot/&apos;&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;</code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2013/06/28/my-openbox-configuration/" data-id="cklr2sz3000087woq0fjo3o3h" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Desktop/" rel="tag">Desktop</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2013/06/28/apache2-read/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Apache Http Sever 代码阅读
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2013/06/28/use-awk-to-transpose-text-file/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Use Awk to transpose text file</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Desktop/">Desktop</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Frontend/">Frontend</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/OpenSource/">OpenSource</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Python/">Python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tools/">Tools</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Visualization/">Visualization</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/note/">note</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Desktop/" rel="tag">Desktop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NodeJS/" rel="tag">NodeJS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/awk/" rel="tag">awk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http/" rel="tag">http</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Desktop/" style="font-size: 10px;">Desktop</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/NodeJS/" style="font-size: 10px;">NodeJS</a> <a href="/tags/Visualization/" style="font-size: 20px;">Visualization</a> <a href="/tags/awk/" style="font-size: 10px;">awk</a> <a href="/tags/css/" style="font-size: 10px;">css</a> <a href="/tags/http/" style="font-size: 10px;">http</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">五月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/06/">六月 2013</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/03/">三月 2012</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/04/15/python-service-thing/">[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/09/observable-introduction/">Observable 基础介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2019/12/26/d3-scale-intro/">d3-scale-intro</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/03/why-use-lowercase-for-filename/">为什么 Google 代码规范推荐使用小写作为文件名</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/10/taobao-nodejs-mirror/">使用淘宝 NodeJS 镜像加速 Electron Node-Sass 的安装速度</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 zqlu<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>

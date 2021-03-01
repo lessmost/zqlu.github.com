@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Observable 基础介绍 | zqlu&#39;s notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="直接在 Observable 上阅读本文，点击链接 👇https:&#x2F;&#x2F;observablehq.com&#x2F;@zqlu&#x2F;observable  Observable 是什么？按照官方的说法, Observable 是用来探索数据和用代码思考的 notebook。如果你知道 Jupter，那么可以理解 Observable 是可视化领域的 notebook。 那可以用 Observable 来做什么">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Observable 基础介绍">
+<meta property="og:url" content="https://zqlu.github.io/2020/04/09/observable-introduction/index.html">
+<meta property="og:site_name" content="zqlu&#39;s notes">
+<meta property="og:description" content="直接在 Observable 上阅读本文，点击链接 👇https:&#x2F;&#x2F;observablehq.com&#x2F;@zqlu&#x2F;observable  Observable 是什么？按照官方的说法, Observable 是用来探索数据和用代码思考的 notebook。如果你知道 Jupter，那么可以理解 Observable 是可视化领域的 notebook。 那可以用 Observable 来做什么">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-09T22:57:50.000Z">
+<meta property="article:modified_time" content="2021-03-01T21:09:57.417Z">
+<meta property="article:author" content="zqlu">
+<meta property="article:tag" content="Visualization">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternative" href="/atom.xml" title="zqlu&#39;s notes" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-151328471-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">zqlu&#39;s notes</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zqlu.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-observable-introduction" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/04/09/observable-introduction/" class="article-date">
+  <time datetime="2020-04-09T22:57:50.000Z" itemprop="datePublished">2020-04-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Visualization/">Visualization</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Observable 基础介绍
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>直接在 Observable 上阅读本文，点击链接 👇<br><a href="https://observablehq.com/@zqlu/observable" target="_blank" rel="noopener">https://observablehq.com/@zqlu/observable</a></p>
+</blockquote>
+<h2 id="Observable-是什么？"><a href="#Observable-是什么？" class="headerlink" title="Observable 是什么？"></a>Observable 是什么？</h2><p>按照官方的说法, Observable 是用来探索数据和用代码思考的 notebook。如果你知道 Jupter，那么可以理解 Observable 是可视化领域的 notebook。</p>
+<p>那可以用 Observable 来做什么呢？</p>
+<ul>
+<li>搭建真实数据的可视化原型</li>
+<li>连接到其他的 Web API</li>
+<li>分享和复用其他作者的技术和组件</li>
+<li>共享和发布你的作品到社区</li>
+</ul>
+<p>Observable notebook 由一个个单元格 cell 组成，每个单元格是用 JavaScript 代码定义的。单元格会在 notebook 展示它的视图，展开单元格的源代码就可以对源代码进行编辑修改，运行单元格代码后，单元格运行结果就会展示在 notebook 上。</p>
+<h2 id="Observable-是怎样运行的？"><a href="#Observable-是怎样运行的？" class="headerlink" title="Observable 是怎样运行的？"></a>Observable 是怎样运行的？</h2><p>首先，每个单元格都是一段 JavaScript 代码，运行单元格时，即输出 JavaScript 代码的执行结果。如下面单元格代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 单元格运行时将显示 23</span></span><br><span class="line"><span class="number">2</span> + <span class="number">3</span> \* <span class="number">7</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 多条语句的代码块使用 &#123;&#125; 包起来</span></span><br><span class="line"><span class="comment">// 单元格运行时显示代码块最后返回结果：4950</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">let</span> sum = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= <span class="number">100</span>; ++i) &#123;</span><br><span class="line">    sum += i;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外，单格格可以命名，使用 <code>name = {}</code> 方式来命名：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">color = <span class="string">"red"</span>;</span><br></pre></td></tr></table></figure>
+
+<p>命名单元格可以被其他单元格饮用，如</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里英勇了上面单元格 color</span></span><br><span class="line"><span class="comment">// 运行时将显示</span></span><br><span class="line"><span class="comment">// My favorite color is red.</span></span><br><span class="line"><span class="string">`My favorite color is <span class="subst">$&#123;color&#125;</span>.`</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>，这里就有 Observable notebook 的一个特性了，当被引用的单元格更新时，引用了它的单元格也会被重新执行。</p>
+<p>了解了单元格的定义和运行后，我们可以看以下，单元格运行返回的指都可以时哪些类型？上面我们看到的单元格都只是返回了简单的 number string 等。</p>
+<ul>
+<li><p>单元格可以生成和返回 DOM 元素</p>
+<p>简单的说，因为单元格可以执行 JavaScript 代码，所以当然可以在单元格中使用 JavaScript 代码创建 DOM 元素，并返回 DOM 元素，这个时候，单元格运行的时候就会渲染返回的 DOM 元素，如：</p>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="keyword">const</span> elem = <span class="built_in">document</span>.createElement(<span class="string">'span'</span>);</span><br><span class="line">	elem.appendChild(<span class="built_in">document</span>.createTextNode(<span class="string">"Hello from Cell"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> elem;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>单元格可以返回 Markdown 文档</p>
+<p>实际了，到这里，你已经看到了很对返回 Markdown 文档的单元格了，比如当前这个单元格：使用内置的 md 标签即可创建 Markdown 文档了：</p>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">md<span class="string">`My favorite color is **<span class="subst">$&#123;color&#125;</span>**.`</span>;</span><br></pre></td></tr></table></figure>
+
+<p>看到这里，大概可以明白 Observable notebook 单元格的运行了，返回 JavaScript 的单元格，会在单元格上显示返回值，其他特别的有返回 HTML 和 Markdown 文档的单元格；同时单元格可以命名和被其他单元格引用，引用后的单元格会自动重新执行。</p>
+<p>此外，Observable 单元格和普通的 JavaScript 代码还用一下区别：</p>
+<ul>
+<li>各个单元格是相关独立的代码块：即一个单元格的错误不行阻碍其他单元格代码执行；同时单元格内部变量作用范围也仅在当前单元格</li>
+<li>单元格是按照拓扑结构顺序运行的：这一点也是 Observable 比较特别的地方，普通的 JavaScript 代码是从上忘下运行的，Observable 中的单元格不是，是按照单元格之前的依赖关系来确定运行顺序的，比如单元格 a 引用了单元格 b，那就会先运行单元格 b。同时，因为这一点，单元格之间不允许存在循环依赖。</li>
+<li>单元格会自动隐式的等待 Promise resolve，即 await Promise：比如一个单元格返回的是一个 Promise，那单元格运行式会等待 Promise，显示 Promise resolve/reject 的结果：</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    resolve(<span class="string">"Resolve from Promise"</span>);</span><br><span class="line">  &#125;, <span class="number">3000</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    reject(<span class="string">"Rejected from Promise"</span>);</span><br><span class="line">  &#125;, <span class="number">3000</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>单元格会隐式地遍历 Generators</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">c = &#123;</span><br><span class="line"><span class="keyword">let</span> cnt = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(cnt &lt;= <span class="number">100</span>) &#123;</span><br><span class="line"><span class="keyword">yield</span> cnt;</span><br><span class="line">cnt += <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Observable-中的视图-View"><a href="#Observable-中的视图-View" class="headerlink" title="Observable 中的视图 View"></a>Observable 中的视图 View</h2><p>视图 view 是 Observable 中另一个重要的概念，在前面提到了单元格可以返回 DOM 元素，即单元格可以有视图，此外，单元格也有 value，为了让单元格的 value 和视图绑定，Observable 提供了内置的 viewof 操作符。</p>
+<p>参见下面的例子: 注意 UI 视图和 input 值之间的关联</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">viewof input = html`<span class="xml"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">range</span>&gt;</span><span class="tag">&lt;/<span class="name">input</span>&gt;</span>`</span></span><br></pre></td></tr></table></figure>
+
+<p>这背后的原因其实是把值 input 和视图 DOM 元素的 value 属性进行了绑定，注意在不使用 viewof 的时候，即使上也可以读取到 DOM 元素 input2 上的 value，只不过这里就没有绑定了</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">input2 = html`<span class="xml"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">range</span>&gt;</span><span class="tag">&lt;/<span class="name">input</span>&gt;</span>`</span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">input2.value;</span><br></pre></td></tr></table></figure>
+
+<h2 id="在-Observable-中实现组件"><a href="#在-Observable-中实现组件" class="headerlink" title="在 Observable 中实现组件"></a>在 Observable 中实现组件</h2><p>知道了 viewof 的使用后，其实就可以在 Observable 中实现组件化的视图了</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">slider = &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;min = <span class="number">0</span>, max = <span class="number">100</span>, initialValue = <span class="number">50</span>, step = <span class="number">1</span>, prefix = <span class="string">''</span>, suffix = <span class="string">''</span>&#125; = props;</span><br><span class="line">    <span class="keyword">const</span> container = <span class="built_in">document</span>.createElement(<span class="string">'div'</span>);</span><br><span class="line">    <span class="keyword">const</span> prefixNode = <span class="built_in">document</span>.createElement(<span class="string">'span'</span>);</span><br><span class="line">    <span class="keyword">const</span> suffixNode = <span class="built_in">document</span>.createElement(<span class="string">'span'</span>);</span><br><span class="line">    <span class="keyword">const</span> inputNode = <span class="built_in">document</span>.createElement(<span class="string">'input'</span>);</span><br><span class="line">    suffixNode.appendChild(<span class="built_in">document</span>.createTextNode(suffix));</span><br><span class="line">    prefixNode.appendChild(<span class="built_in">document</span>.createTextNode(prefix));</span><br><span class="line">    inputNode.setAttribute(<span class="string">'type'</span>, <span class="string">'range'</span>);</span><br><span class="line">    inputNode.setAttribute(<span class="string">'min'</span>, min);</span><br><span class="line">    inputNode.setAttribute(<span class="string">'max'</span>, max);</span><br><span class="line">    inputNode.setAttribute(<span class="string">'step'</span>, step);</span><br><span class="line">    inputNode.setAttribute(<span class="string">'value'</span>, initialValue);</span><br><span class="line">    container.appendChild(prefixNode);</span><br><span class="line">    container.appendChild(inputNode);</span><br><span class="line">    container.appendChild(suffixNode);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置视图的初始值</span></span><br><span class="line">    container.value = <span class="built_in">Number</span>(initialValue);</span><br><span class="line">    inputNode.addEventListener(<span class="string">'input'</span>, evt =&gt; &#123;</span><br><span class="line">      container.value = <span class="built_in">Number</span>(evt.target.value);</span><br><span class="line">      <span class="comment">// 视图值发生变化，发出事件</span></span><br><span class="line">      container.dispatchEvent(<span class="keyword">new</span> CustomEvent(<span class="string">"input"</span>));</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> container;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">viewof cnt = slider(&#123;<span class="attr">prefix</span>: <span class="string">'Start'</span>, <span class="attr">suffix</span>: <span class="string">'End'</span>&#125;)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">viewof timeline = slider(&#123;<span class="attr">prefix</span>: <span class="string">'20200301'</span>, <span class="attr">suffix</span>: <span class="string">'20200330'</span>, <span class="attr">min</span>: <span class="number">1</span>, <span class="attr">max</span>: <span class="number">30</span>, <span class="attr">initialValue</span>: <span class="number">1</span>&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子，就展示了如何实现一个完整的 Observable 组件了：一个组件包括了：</p>
+<ul>
+<li>视图：使用 DOM API 创建的 DOM 元素</li>
+<li>值：值是值直接挂在 DOM 元素上的 value，value 这里虽然是一个简单的 number 值，实际上 value 可以是任意类型的，如复杂的 object 等，注意 value 需要更新变化的时候，需要发事件出来</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总结一下，到这里，我们从前端开发者的视角介绍了 Observable：</p>
+<ul>
+<li>Observable 的定位和功能</li>
+<li>Observable 运行相关问题</li>
+<li>Observable 中的组件编写</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2020/04/09/observable-introduction/" data-id="cklr2sz33000c7woq1jw83s2k" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/04/15/python-service-thing/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          [译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/12/26/d3-scale-intro/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">d3-scale-intro</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Desktop/">Desktop</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Frontend/">Frontend</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/OpenSource/">OpenSource</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Python/">Python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tools/">Tools</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Visualization/">Visualization</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/note/">note</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Desktop/" rel="tag">Desktop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NodeJS/" rel="tag">NodeJS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/awk/" rel="tag">awk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http/" rel="tag">http</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Desktop/" style="font-size: 10px;">Desktop</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/NodeJS/" style="font-size: 10px;">NodeJS</a> <a href="/tags/Visualization/" style="font-size: 20px;">Visualization</a> <a href="/tags/awk/" style="font-size: 10px;">awk</a> <a href="/tags/css/" style="font-size: 10px;">css</a> <a href="/tags/http/" style="font-size: 10px;">http</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">五月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/06/">六月 2013</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/03/">三月 2012</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/04/15/python-service-thing/">[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/09/observable-introduction/">Observable 基础介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2019/12/26/d3-scale-intro/">d3-scale-intro</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/03/why-use-lowercase-for-filename/">为什么 Google 代码规范推荐使用小写作为文件名</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/10/taobao-nodejs-mirror/">使用淘宝 NodeJS 镜像加速 Electron Node-Sass 的安装速度</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 zqlu<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>

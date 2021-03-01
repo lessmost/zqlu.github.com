@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>zqlu&#39;s notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="zqlu&#39;s notes">
+<meta property="og:url" content="https://zqlu.github.io/index.html">
+<meta property="og:site_name" content="zqlu&#39;s notes">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="zqlu">
+<meta property="article:tag" content="blog">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternative" href="/atom.xml" title="zqlu&#39;s notes" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-151328471-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">zqlu&#39;s notes</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://zqlu.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-python-service-thing" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/04/15/python-service-thing/" class="article-date">
+  <time datetime="2020-04-15T23:31:00.000Z" itemprop="datePublished">2020-04-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Python/">Python</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/04/15/python-service-thing/">[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>原文连接：<a href="https://rachelbythebay.com/w/2020/03/07/costly/" target="_blank" rel="noopener">https://rachelbythebay.com/w/2020/03/07/costly/</a><br>文章基本是作者对 Python 语言下编写服务程序的一些吐槽，设计到如 Apache HTTPD 服务器的进程模型、Linux 的 fork、事件队列、用户态线程、进程调度和抢占、解释性语言等概念。作者吐槽了在有关这一些设计和院里的作用下，造成他的服务程序不可靠、效率低等问题。文章在 HackerNews 用很多讨论，很多评论中给了一些建议和解决方法，更多的是可以学习到作者在一个常见的问题背后寻找的系统各个层次和根本原因，并保持愤怒的心态指出这些问题。当然，作者是不是对某些技术有偏见，个人认为也是有的。</p>
+</blockquote>
+<p>即使你正处在很糟糕的境况下，你也应该试着从中吸取教训。你永远不知道你的人生的目的是否是像那张海报上说的一样，实际上是为了警示别人。</p>
+<p>有许多事情我自己不会做，比如，我不会用 Python 语言来编写一个服务。当情况需要需要使用 RPC 时，我不会使用 web requests。当需要使用并行编程时，如果有操作系统级的线程，我就不会使用那些“绿色”(用户空间)线程。</p>
+<p>这些信念我已经有过一段时间了，但这些信念并没有根植与使用这些特定技术的经验中。我从更远来看，认定它们不好，并且，我还有其他的东西可以用，效果更好，我用起来也更开心。</p>
+<p>然而，实际上我现在有这样的经历：我可以作为那个警示者。但你使用 Pyhton、Gunicorn、Gevent、和 web request 来进行构建时，下面这些就会发生。</p>
+<p>所以你需要构建一个“服务”，对吧？而它就驻在这个盒子上。这个盒子有 4 个 CPU 核心，所以你正在运行 5 个它的实例，因为有人认为理解的实例数应该是 (CPU 核心数 + 1)。它到底是怎么做到的呢？</p>
+<p>好吧，首先，有些东西运行 <code>gunicorn</code>、做一些管家的事情，设置一个监听套接字，然后调用 <code>fork()</code> 。然后子进程全部引入你的“应用”——也就是你的“服务”的代码。然后，它们都做一些本地内务处理，把弄一下 epoll，然后开始等待监听套接字上线。到这个时候，你的每一个进程都在调用 <code>epoll_wait()</code> 后，在内核中睡眠。</p>
+<p>一个请求到达了我们的套接字。Linux 运行一个订阅者列表，所有的订阅者在做 epoll 的事情——所有的订阅者！—— 并告诉它们每一个人都有东西在外面等着。它们一个接一个地醒来，相隔几纳秒。</p>
+<p>然后，这五个进程都调用 <code>accpet4()</code>。因为只有一个连接在等待，所以它们之中只有一个会连接成功。很显然，第一个调用的将会胜出。第一个调用它的可能是第一个被内核唤醒的进程。(内核似乎是在做某种 FIFO 的事情，说一个那个进程一直赢，不过我跑题了。)</p>
+<p>胜出的进程继续在该套接字上执行 <code>recvfrom()</code>，找出它们想要的东西。这是某种”GET /blah HTTP/1.1”的东西，哦，这是一个 HTTP 请求。</p>
+<p>于此同时，其他的四个进程都得到了-1，errno 设置为 EAGAIN。因为——惊喜——没有其他的东西在那个套接字上等着。他们生了点闷气，踢了踢脚边的小石子，做了点家务，把一些数据打乱，重新设置他们的 epoll 集，在浪费了一点 CPU 时间后，却没有任何好处。</p>
+<p>这种情况，顺便说一下，早在 90 年代的时候，这种情况就被称为“雷霆万钧”，当时 Linux 的人们开始为 Windows NT 的 Web 服务器如何狠狠鞭打 Linux 而发狂。人们意识到，也许让每一个 Apache httpd 进程在调用 accept() 的阻塞然后在同一时间全部唤醒，并不是一个好主意。他们想出了信号量这样的技巧，和后来的 EPOLLONESHO。这样，它才变得更好了。</p>
+<p>在这个世界上，90 年代显然从未结束。</p>
+<p>让我们继续这个场景。1 号进程仍然在运行这个请求。反过来，它必须向网络中的一个“服务”发送一些东西。当它这样做的时候，“绿色线程”库中的东西注意了正在发生的事情，并说“嘿，你似乎在网络上等着，我们回去再干一些活怎么样？“。它推开了那个最初的请求，回到了 EPoll 的地方。</p>
+<p>而且，嘿，你知道吗，它实际上得到了另一个连接请求！它对请求做了 <code>recvfrom()</code>，并看到了它想要对东西，现在它开始相应这个请求。这涉及到一些数据的处理。也许是一些字符串操作。也可能是从文件系统中读取 JSON，然后反序列化成本地对象。也许是执行翻译操作。(也许，它已经做了很多次了，但它太笨了，没有办法把上次的数据保留下来。)管它是什么，都可以。关键是，它现在忙于响应这个新的请求。</p>
+<p>于此同时，那个最初的请求逐渐变老了。它发出的请求已经有响应了，但由于它一直没有机会回过来，新的请求还在酝酿中。最终，那个新的请求的计算完成了，它发回了一个回复：200 HTTP/1.1 OK 啦啦啦之类。</p>
+<p>然后，它做了一个奇怪的用户空间“线程”翻转回到原来请求的上下文中，并读取了响应。它咀嚼着这些数据，这是因为，这些数据是可怕的 JSON 之类的东西，而不是一个合理的，如有强类型的、没有歧义，容易反序列化的消息。时间在滴滴答答的流逝着。</p>
+<p>终于，它发回了这个原始请求的回复。但是，噢，这是什么：</p>
+<p>SIGPIPE。</p>
+<p>是的，那个原始请求的文件描述符的<code>write()</code>调用返回了-1，错误码是 EPIPE，同时也导致了一个 SIGPIPE 信号在进程中被触发。发生了什么事？</p>
+<p>事情是这样的，客户等的不耐烦了，就放弃了。他挂断了连接。由于网络上的连接死了，写的东西立刻就失败了。</p>
+<p>服务进程耸耸肩，关闭了连接，做了通常的请求后的清理工作，然后回去和大家一起等待。</p>
+<p>考虑到客户不知道这个请求是否真的完成了。这完全是一个复杂的协议的东西。客户现在唯一的选择就是再试一次，希望它能找到一个人，不要在他们的“对话”中跑掉，去处理新的请求。</p>
+<p>(我当然希望这些请求是幂等的)</p>
+<p>这到底是怎么回事？很多事情。太多的事情了。</p>
+<p>在任何一个给定的 Worker 内，在某一时刻它就只能执行一件事情。就是，它要不在处理一个请求，要么在处理另外一个请求。只有一个线程与这个进程关联。这不像它可以使用多个 CPU 核心去做其他的事情。这些并不是操作系统级别的线程，它们是用户空间态模拟的线程。如果其中一个在运行，那其他的就在等待，如果等待的那个线程有紧急的截止日期，那就糟糕了。</p>
+<p>那为什么不搞出一堆工作进程出来呢，就直接创建出比 CPU 核心数多的进程出来？嗯，这又扯到另外一回事了。所有这些工作进程都需要消耗内存。</p>
+<p>但是等等，你说，<code>fork()</code> 是在写的时候复制的。你不会有这些代码的全部拷贝。但是，你只说对了一办，fork() 的写复制实际上只作用与已经加载的页面。</p>
+<p>“什么？” 你大概回这样想。</p>
+<p>回去看一下。我是说它先 fork 然后再导入你的代码。你的应用(几乎可以肯定是 Python 解释器内的大部分代码)在 fork 的时候并不在内存中。它在这个时间点之后才被加载。</p>
+<p>“你到底是为什么要先 fork 再加载，而不是加载后再 fork ”</p>
+<p>大概就是在这个时候，你会发现有人在“导入时间”上做了一些调皮讨厌的事情，比如说在“导入时”需要执行的事情。也就是说，他们在 .py 文件中挂着一些代码，这些代码没有被任何函数或类之类的东西所封闭，这样一来，导入时就会运行它。这些代码会产生副作用。从来没有人告诉他们不要这么做。(很显然，从来没有任何人告诉他们不要去某些事情，鉴于我上面描述的那些摇摇欲坠的塔式架构决策。)</p>
+<p>这就是他们为什么要先 fork 再加载代码的原因。这就是为什么它们占用了这么多内存，你就是不能让这一堆愚蠢的东西在那一次处理一个请求，而不会就因为新的请求来了不能忽略它，而被拉回去。机器上就是没有足够的内存来让你这样做，所以，num_cpus + 1 就可以了。</p>
+<p>我不会去讨论当实际应该使用真正的 RPC 机制时，却整个在使用 Web 请求这整个疯狂的事情，这些情况包括，你知道的，比如强类型定义的数据类型和他们的操作方法，负载均衡，健康检查，队列深度确定，分箱，二选一，选择性先进先出，以及其他所有的在严格测试的系统中会出现的东西。这完全是另外一个帖子需要吐槽的东西了。</p>
+<p>那么，你如何让这种怪物继续运行呢？首先，你要确保你永远不允许它使用过多的 CPU，因为根据经验，这意味着你将会分心太多，在追逐另外一些请求的时候，会把一些请求弄超时。你把你的系统做成了在一个可怜的系统利用率水平上的“弹性扩展”，如整个机器的 25% ～ 30%间。</p>
+<p>你的云供应商很喜欢这样。他们告诉你：当然是这样，你需要运行更多的实例！买我们的系统来来帮助你管理成千上万个同样未被充分利用的虚拟机！它会给我们的创始人买一个可爱的象牙背抓器。</p>
+<p>这意味着你必须想出令人叹为观止的东西来应对成千上万的实例，而实际上这些事情可以用远比它小的多的东西来完成时，只要有合理的实施方案，就可以实现。你的一个朋友指出了指出清单，你就默默地流泪了。</p>
+<p>你可曾有过这样的体会，然后意识到，哎，我真希望自己什么都不知道？只要身处在可怕境地的人才应该经历过这种事，而且不惜搞懂这一点？是的，这就是我这样的人。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2020/04/15/python-service-thing/" data-id="cklr2sz35000d7woq7xyy0ax8" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-observable-introduction" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/04/09/observable-introduction/" class="article-date">
+  <time datetime="2020-04-09T22:57:50.000Z" itemprop="datePublished">2020-04-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Visualization/">Visualization</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/04/09/observable-introduction/">Observable 基础介绍</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>直接在 Observable 上阅读本文，点击链接 👇<br><a href="https://observablehq.com/@zqlu/observable" target="_blank" rel="noopener">https://observablehq.com/@zqlu/observable</a></p>
+</blockquote>
+<h2 id="Observable-是什么？"><a href="#Observable-是什么？" class="headerlink" title="Observable 是什么？"></a>Observable 是什么？</h2><p>按照官方的说法, Observable 是用来探索数据和用代码思考的 notebook。如果你知道 Jupter，那么可以理解 Observable 是可视化领域的 notebook。</p>
+<p>那可以用 Observable 来做什么呢？</p>
+<ul>
+<li>搭建真实数据的可视化原型</li>
+<li>连接到其他的 Web API</li>
+<li>分享和复用其他作者的技术和组件</li>
+<li>共享和发布你的作品到社区</li>
+</ul>
+<p>Observable notebook 由一个个单元格 cell 组成，每个单元格是用 JavaScript 代码定义的。单元格会在 notebook 展示它的视图，展开单元格的源代码就可以对源代码进行编辑修改，运行单元格代码后，单元格运行结果就会展示在 notebook 上。</p>
+<h2 id="Observable-是怎样运行的？"><a href="#Observable-是怎样运行的？" class="headerlink" title="Observable 是怎样运行的？"></a>Observable 是怎样运行的？</h2><p>首先，每个单元格都是一段 JavaScript 代码，运行单元格时，即输出 JavaScript 代码的执行结果。如下面单元格代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 单元格运行时将显示 23</span></span><br><span class="line"><span class="number">2</span> + <span class="number">3</span> \* <span class="number">7</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 多条语句的代码块使用 &#123;&#125; 包起来</span></span><br><span class="line"><span class="comment">// 单元格运行时显示代码块最后返回结果：4950</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">let</span> sum = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= <span class="number">100</span>; ++i) &#123;</span><br><span class="line">    sum += i;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外，单格格可以命名，使用 <code>name = {}</code> 方式来命名：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">color = <span class="string">"red"</span>;</span><br></pre></td></tr></table></figure>
+
+<p>命名单元格可以被其他单元格饮用，如</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里英勇了上面单元格 color</span></span><br><span class="line"><span class="comment">// 运行时将显示</span></span><br><span class="line"><span class="comment">// My favorite color is red.</span></span><br><span class="line"><span class="string">`My favorite color is <span class="subst">$&#123;color&#125;</span>.`</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>，这里就有 Observable notebook 的一个特性了，当被引用的单元格更新时，引用了它的单元格也会被重新执行。</p>
+<p>了解了单元格的定义和运行后，我们可以看以下，单元格运行返回的指都可以时哪些类型？上面我们看到的单元格都只是返回了简单的 number string 等。</p>
+<ul>
+<li><p>单元格可以生成和返回 DOM 元素</p>
+<p>简单的说，因为单元格可以执行 JavaScript 代码，所以当然可以在单元格中使用 JavaScript 代码创建 DOM 元素，并返回 DOM 元素，这个时候，单元格运行的时候就会渲染返回的 DOM 元素，如：</p>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="keyword">const</span> elem = <span class="built_in">document</span>.createElement(<span class="string">'span'</span>);</span><br><span class="line">	elem.appendChild(<span class="built_in">document</span>.createTextNode(<span class="string">"Hello from Cell"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> elem;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>单元格可以返回 Markdown 文档</p>
+<p>实际了，到这里，你已经看到了很对返回 Markdown 文档的单元格了，比如当前这个单元格：使用内置的 md 标签即可创建 Markdown 文档了：</p>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">md<span class="string">`My favorite color is **<span class="subst">$&#123;color&#125;</span>**.`</span>;</span><br></pre></td></tr></table></figure>
+
+<p>看到这里，大概可以明白 Observable notebook 单元格的运行了，返回 JavaScript 的单元格，会在单元格上显示返回值，其他特别的有返回 HTML 和 Markdown 文档的单元格；同时单元格可以命名和被其他单元格引用，引用后的单元格会自动重新执行。</p>
+<p>此外，Observable 单元格和普通的 JavaScript 代码还用一下区别：</p>
+<ul>
+<li>各个单元格是相关独立的代码块：即一个单元格的错误不行阻碍其他单元格代码执行；同时单元格内部变量作用范围也仅在当前单元格</li>
+<li>单元格是按照拓扑结构顺序运行的：这一点也是 Observable 比较特别的地方，普通的 JavaScript 代码是从上忘下运行的，Observable 中的单元格不是，是按照单元格之前的依赖关系来确定运行顺序的，比如单元格 a 引用了单元格 b，那就会先运行单元格 b。同时，因为这一点，单元格之间不允许存在循环依赖。</li>
+<li>单元格会自动隐式的等待 Promise resolve，即 await Promise：比如一个单元格返回的是一个 Promise，那单元格运行式会等待 Promise，显示 Promise resolve/reject 的结果：</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve</span>) =&gt;</span> &#123;</span><br><span class="line">  setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    resolve(<span class="string">"Resolve from Promise"</span>);</span><br><span class="line">  &#125;, <span class="number">3000</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    reject(<span class="string">"Rejected from Promise"</span>);</span><br><span class="line">  &#125;, <span class="number">3000</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>单元格会隐式地遍历 Generators</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">c = &#123;</span><br><span class="line"><span class="keyword">let</span> cnt = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span>(cnt &lt;= <span class="number">100</span>) &#123;</span><br><span class="line"><span class="keyword">yield</span> cnt;</span><br><span class="line">cnt += <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Observable-中的视图-View"><a href="#Observable-中的视图-View" class="headerlink" title="Observable 中的视图 View"></a>Observable 中的视图 View</h2><p>视图 view 是 Observable 中另一个重要的概念，在前面提到了单元格可以返回 DOM 元素，即单元格可以有视图，此外，单元格也有 value，为了让单元格的 value 和视图绑定，Observable 提供了内置的 viewof 操作符。</p>
+<p>参见下面的例子: 注意 UI 视图和 input 值之间的关联</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">viewof input = html`<span class="xml"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">range</span>&gt;</span><span class="tag">&lt;/<span class="name">input</span>&gt;</span>`</span></span><br></pre></td></tr></table></figure>
+
+<p>这背后的原因其实是把值 input 和视图 DOM 元素的 value 属性进行了绑定，注意在不使用 viewof 的时候，即使上也可以读取到 DOM 元素 input2 上的 value，只不过这里就没有绑定了</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">input2 = html`<span class="xml"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">range</span>&gt;</span><span class="tag">&lt;/<span class="name">input</span>&gt;</span>`</span>;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">input2.value;</span><br></pre></td></tr></table></figure>
+
+<h2 id="在-Observable-中实现组件"><a href="#在-Observable-中实现组件" class="headerlink" title="在 Observable 中实现组件"></a>在 Observable 中实现组件</h2><p>知道了 viewof 的使用后，其实就可以在 Observable 中实现组件化的视图了</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">slider = &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;min = <span class="number">0</span>, max = <span class="number">100</span>, initialValue = <span class="number">50</span>, step = <span class="number">1</span>, prefix = <span class="string">''</span>, suffix = <span class="string">''</span>&#125; = props;</span><br><span class="line">    <span class="keyword">const</span> container = <span class="built_in">document</span>.createElement(<span class="string">'div'</span>);</span><br><span class="line">    <span class="keyword">const</span> prefixNode = <span class="built_in">document</span>.createElement(<span class="string">'span'</span>);</span><br><span class="line">    <span class="keyword">const</span> suffixNode = <span class="built_in">document</span>.createElement(<span class="string">'span'</span>);</span><br><span class="line">    <span class="keyword">const</span> inputNode = <span class="built_in">document</span>.createElement(<span class="string">'input'</span>);</span><br><span class="line">    suffixNode.appendChild(<span class="built_in">document</span>.createTextNode(suffix));</span><br><span class="line">    prefixNode.appendChild(<span class="built_in">document</span>.createTextNode(prefix));</span><br><span class="line">    inputNode.setAttribute(<span class="string">'type'</span>, <span class="string">'range'</span>);</span><br><span class="line">    inputNode.setAttribute(<span class="string">'min'</span>, min);</span><br><span class="line">    inputNode.setAttribute(<span class="string">'max'</span>, max);</span><br><span class="line">    inputNode.setAttribute(<span class="string">'step'</span>, step);</span><br><span class="line">    inputNode.setAttribute(<span class="string">'value'</span>, initialValue);</span><br><span class="line">    container.appendChild(prefixNode);</span><br><span class="line">    container.appendChild(inputNode);</span><br><span class="line">    container.appendChild(suffixNode);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置视图的初始值</span></span><br><span class="line">    container.value = <span class="built_in">Number</span>(initialValue);</span><br><span class="line">    inputNode.addEventListener(<span class="string">'input'</span>, evt =&gt; &#123;</span><br><span class="line">      container.value = <span class="built_in">Number</span>(evt.target.value);</span><br><span class="line">      <span class="comment">// 视图值发生变化，发出事件</span></span><br><span class="line">      container.dispatchEvent(<span class="keyword">new</span> CustomEvent(<span class="string">"input"</span>));</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> container;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">viewof cnt = slider(&#123;<span class="attr">prefix</span>: <span class="string">'Start'</span>, <span class="attr">suffix</span>: <span class="string">'End'</span>&#125;)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">viewof timeline = slider(&#123;<span class="attr">prefix</span>: <span class="string">'20200301'</span>, <span class="attr">suffix</span>: <span class="string">'20200330'</span>, <span class="attr">min</span>: <span class="number">1</span>, <span class="attr">max</span>: <span class="number">30</span>, <span class="attr">initialValue</span>: <span class="number">1</span>&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>上面的例子，就展示了如何实现一个完整的 Observable 组件了：一个组件包括了：</p>
+<ul>
+<li>视图：使用 DOM API 创建的 DOM 元素</li>
+<li>值：值是值直接挂在 DOM 元素上的 value，value 这里虽然是一个简单的 number 值，实际上 value 可以是任意类型的，如复杂的 object 等，注意 value 需要更新变化的时候，需要发事件出来</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总结一下，到这里，我们从前端开发者的视角介绍了 Observable：</p>
+<ul>
+<li>Observable 的定位和功能</li>
+<li>Observable 运行相关问题</li>
+<li>Observable 中的组件编写</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2020/04/09/observable-introduction/" data-id="cklr2sz33000c7woq1jw83s2k" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-d3-scale-intro" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/12/26/d3-scale-intro/" class="article-date">
+  <time datetime="2019-12-26T19:45:54.000Z" itemprop="datePublished">2019-12-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Visualization/">Visualization</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/12/26/d3-scale-intro/">d3-scale-intro</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><strong>WIP</strong></p>
+<blockquote>
+<p><a href="https://github.com/d3/d3-scale" target="_blank" rel="noopener">d3-scale</a>是 d3 库下一个独立模块：它是图形中常用的 Scale 的实现，在 d3 的中文文档中，<code>Scale</code> 被翻译成 <code>比例尺</code>。Scale 负责将数据维度映射到图形通道，如在散点图中，将数据中的数值映射为图形中点的位置像素信息，这就是 Scale 实现的，除了用来映射计算位置这样的数值信息，Scale 也可以用来映射计算其他非数值信息：如颜色值、线条绘制宽度、符号大小尺寸等。不仅是数值类型数据，Scale 可以用在任何类型的数据上，如有命名的分类数据、或其他的离散数据。</p>
+</blockquote>
+<p>d3 中包括的 scale 如下：</p>
+<p><img src="../images/d3-scales.jpg" alt="d3 scales"></p>
+<h2 id="Scale-的定义"><a href="#Scale-的定义" class="headerlink" title="Scale 的定义"></a>Scale 的定义</h2><p>从数学角度来看，每一个 scale 可以看出如下函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">有 x ⊂ domain，y ⊂ range，scale f 满足</span><br><span class="line">y &#x3D; f(x)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>domain：原始数据中的数据集合，包括数值、分类数据、离散数据</li>
+<li>range：scale 映射后的集合</li>
+<li>f: scale 函数</li>
+<li>f’: invert 函数，大部分 scale 实现了 invert，即可由 range 中的值计算原数据 x = f’(y)</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2019/12/26/d3-scale-intro/" data-id="cklr2sz2v00067woq36sv5mhd" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-why-use-lowercase-for-filename" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/03/why-use-lowercase-for-filename/" class="article-date">
+  <time datetime="2019-11-03T23:29:11.000Z" itemprop="datePublished">2019-11-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/note/">note</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/11/03/why-use-lowercase-for-filename/">为什么 Google 代码规范推荐使用小写作为文件名</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://developers.google.com/style/filenames" target="_blank" rel="noopener">Google 代码规范关于文件名部分</a>写到：</p>
+<blockquote>
+<p>Make file and directory names lowercase. In general, separate words with hyphens, not underscores. Use only standard ASCII alphanumeric characters in file and directory names.</p>
+</blockquote>
+<p>也就是推荐使用<code>my-useful-class.js</code>这样的命名规则，而不是<code>MyUsefulClass.js</code>这样的规则，我自己之前一直习惯后一种的规则，同时也在 OOP 语言中保持文件名和类名一样的规则，最近在项目中讨论文件名规范的时候看了下 Google 的规范，开始想使用小写加<code>-</code>命名文件背后有没有什么原因，还是只是一个喜好问题？自己想了一些可能的原因：</p>
+<ul>
+<li>不同文件系统对文件大小写敏感不一样：比如在 MacOS 的 HFS+系统中同一目录下就不能有 README.md 和 readme.md，而在大多数 Linux 中的文件系统中都是可以的，这样如果文件名大小写都有，就很可能在有些文件系统从存在问题</li>
+<li>网络地址 URL 的大小写敏感性：URL 中的域名是大小写不敏感的；PATH 路径部分则比较复杂，不同服务器的实现可能不同，将源代码通过 Web 服务访问如果设计大小写也要求服务器对 PATH 部分做到大小写敏感</li>
+<li>在 Git 中转换文件大小写还算是比较麻烦的</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2019/11/03/why-use-lowercase-for-filename/" data-id="cklr2sz3f000n7woq0in38hel" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-taobao-nodejs-mirror" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/05/10/taobao-nodejs-mirror/" class="article-date">
+  <time datetime="2016-05-10T22:30:24.000Z" itemprop="datePublished">2016-05-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Frontend/">Frontend</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/05/10/taobao-nodejs-mirror/">使用淘宝 NodeJS 镜像加速 Electron Node-Sass 的安装速度</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在使用了 cnpm 或者配置了 npmrc 中的registry 和 disturl 后，npm 包本身的下载速度虽然不错了，不过还是有一些特别的包安装速度感人，如 Electron-prebuilt 和 node-sass，这两个包都有一些 install 或者 postinstall 脚本，这些脚本会下载一些二进制文件，而默认都是从 Github 下载的，幸运的是它们都有环境变量的配置来更改默认的下载地址。</p>
+<h2 id="配置-npm"><a href="#配置-npm" class="headerlink" title="配置 npm"></a>配置 npm</h2><p>由于我不想单独再使用 cnpm 来安装模块，直接在 npmrc 中添加一些配置，也可以达到 cnpm 的效果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># .npmrc</span><br><span class="line">registry&#x3D;https:&#x2F;&#x2F;registry.npm.taobao.org&#x2F;</span><br><span class="line">disturl&#x3D;https:&#x2F;&#x2F;npm.taobao.org&#x2F;dist</span><br></pre></td></tr></table></figure>
+
+<h2 id="Electron-download-与-node-sass"><a href="#Electron-download-与-node-sass" class="headerlink" title="Electron-download 与 node-sass"></a>Electron-download 与 node-sass</h2><p>Electron-prebuilt使用 electron-download 来下载 electron 二进制文件并默认缓存在 HOME/.electron/ 目录下。</p>
+<p>electron-download 模块 index.js 中 download 函数构建 url 的时候就优先检查环境环境 ELECTRON_MIRROR:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> url = process.env.NPM_CONFIG_ELECTRON_MIRROR ||</span><br><span class="line">    process.env.ELECTRON_MIRROR ||</span><br><span class="line">    opts.mirror ||</span><br><span class="line">    <span class="string">'https://github.com/electron/electron/releases/download/v'</span></span><br><span class="line">  url += process.env.ELECTRON_CUSTOM_DIR || opts.customDir || version</span><br><span class="line">  url += <span class="string">'/'</span></span><br></pre></td></tr></table></figure>
+
+
+<p>node-sass 模块 extension.js 中的 getBinaryUrl 则会检查环境变量 SASS_BINARY_SITE:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getBinaryUrl</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> site = getArgument(<span class="string">'--sass-binary-site'</span>) ||</span><br><span class="line">             process.env.SASS_BINARY_SITE  ||</span><br><span class="line">             process.env.npm_config_sass_binary_site ||</span><br><span class="line">             (pkg.nodeSassConfig &amp;&amp; pkg.nodeSassConfig.binarySite) ||</span><br><span class="line">             <span class="string">'https://github.com/sass/node-sass/releases/download'</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> [site, <span class="string">'v'</span> + pkg.version, getBinaryName()].join(<span class="string">'/'</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="淘宝镜像"><a href="#淘宝镜像" class="headerlink" title="淘宝镜像"></a>淘宝镜像</h2><p>最后，添加环境变量，或者按照<a href="https://npm.taobao.org/mirrors" target="_blank" rel="noopener">淘宝镜像</a>上的方法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> ELECTRON_MIRROR=<span class="string">"https://npm.taobao.org/mirrors/electron/"</span></span><br><span class="line"><span class="built_in">export</span> SASS_BINARY_SITE=<span class="string">"https://npm.taobao.org/mirrors/node-sass"</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="当然，更简单的办法则是直接上全局代理"><a href="#当然，更简单的办法则是直接上全局代理" class="headerlink" title="当然，更简单的办法则是直接上全局代理"></a>当然，更简单的办法则是直接上全局代理</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2016/05/10/taobao-nodejs-mirror/" data-id="cklr2sz38000h7woq96nm1p6i" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NodeJS/" rel="tag">NodeJS</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-clearly-css" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/12/29/clearly-css/" class="article-date">
+  <time datetime="2015-12-29T23:32:22.000Z" itemprop="datePublished">2015-12-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Frontend/">Frontend</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/12/29/clearly-css/">悦读插件是怎么让网页变得简明和易如阅读的？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Evernote 的 <a href="https://evernote.com/clearly/" target="_blank" rel="noopener">Clearly</a> 插件能够让网页简洁和易于阅读，它将网页的主要内容在新的 iframe 中显示，并使用新的不同的主题样式。</p>
+<p>最近看了下 Clearly 的默认 newsprint 主题下 CSS 样式，可以总结为以下几点。</p>
+<h2 id="主体内容"><a href="#主体内容" class="headerlink" title="主体内容"></a>主体内容</h2><p>Clearly 将网页主题居中显示，设置背景颜色和默认字体样式</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">background-color</span>: <span class="selector-id">#F3F2EE</span>;</span><br><span class="line"><span class="selector-tag">font-family</span>: "<span class="selector-tag">PT</span> <span class="selector-tag">Serif</span>";</span><br><span class="line"><span class="selector-tag">font-size</span>: 16<span class="selector-tag">px</span>;</span><br><span class="line"><span class="selector-tag">line-height</span>: 24<span class="selector-tag">px</span>;</span><br><span class="line"><span class="selector-tag">color</span>: <span class="selector-id">#1F0909</span>;</span><br><span class="line"><span class="selector-tag">text-align</span>: <span class="selector-tag">left</span>;</span><br><span class="line"><span class="selector-tag">vertical-align</span>: <span class="selector-tag">baseline</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="代码样式"><a href="#代码样式" class="headerlink" title="代码样式"></a>代码样式</h2><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">font-family</span>: <span class="selector-tag">Inconsolata</span>;</span><br><span class="line"><span class="selector-tag">font-size</span>: 14<span class="selector-tag">px</span>;</span><br><span class="line"><span class="selector-tag">line-height</span>: 24<span class="selector-tag">px</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Oracle-Java-Docs-网站的-Stylish"><a href="#Oracle-Java-Docs-网站的-Stylish" class="headerlink" title="Oracle Java Docs 网站的 Stylish"></a>Oracle Java Docs 网站的 Stylish</h2><p>将上面的这些样式写成 <a href="https://userstyles.org/" target="_blank" rel="noopener">Stylish</a> 插件的一个样式，给 <a href="https://docs.oracle.com/javase/tutorial/collections/interfaces/list.html" target="_blank" rel="noopener">Oracle Java Docs</a> 网站使用，就可以获得与 Clearly 插件类似的阅读效果了:)</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-id">#TopBar</span> &#123;</span><br><span class="line">    <span class="attribute">display</span>: none;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-id">#LeftBar</span> &#123;</span><br><span class="line">    <span class="attribute">display</span>: none;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-class">.header-container</span> &#123;</span><br><span class="line">    <span class="attribute">display</span>: none;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">body</span> &#123;</span><br><span class="line">    <span class="attribute">background-color</span>: <span class="number">#F3F2EE</span>;</span><br><span class="line">    <span class="attribute">font-family</span>: <span class="string">"PT Serif"</span>;</span><br><span class="line">    <span class="attribute">font-size</span>: <span class="number">16px</span>;</span><br><span class="line">    <span class="attribute">line-height</span>: <span class="number">24px</span>;</span><br><span class="line">    <span class="attribute">color</span>: <span class="number">#1F0909</span>;</span><br><span class="line">    <span class="attribute">text-align</span>: left;</span><br><span class="line">    <span class="attribute">vertical-align</span>: baseline;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">pre</span>, <span class="selector-tag">code</span> &#123;</span><br><span class="line">    <span class="attribute">font-family</span>: Inconsolata;</span><br><span class="line">    <span class="attribute">font-size</span>: <span class="number">14px</span>;</span><br><span class="line">    <span class="attribute">line-height</span>: <span class="number">24px</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-id">#MainFlow</span> &#123;</span><br><span class="line">    <span class="attribute">width</span>: <span class="number">750px</span>;</span><br><span class="line">    <span class="attribute">margin</span>: auto;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2015/12/29/clearly-css/" data-id="cklr2sz2o00027woq9o54f9rz" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/css/" rel="tag">css</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apache2-read" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/06/28/apache2-read/" class="article-date">
+  <time datetime="2013-06-28T22:49:18.000Z" itemprop="datePublished">2013-06-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/OpenSource/">OpenSource</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/06/28/apache2-read/">Apache Http Sever 代码阅读</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Preface"><a href="#Preface" class="headerlink" title="Preface"></a>Preface<a id="orgheadline1"></a></h1><p>前一段时间，由于实验室的事情需要看一下Apache HTTP Server的源代码，在<br>看的过程中自己就记了一些笔记，这里整理一下传上来，不过代码没有看<br>完，之有其中一部分的笔记。</p>
+<h1 id="Hooks"><a href="#Hooks" class="headerlink" title="Hooks"></a>Hooks<a id="orgheadline5"></a></h1><p>Apache2中一个模块可以输出hook，其他的模块可以使用这个hook，hook的输<br>出者需要声明和实现hook，提供hook函数，调用这个hook；hook的使用者则使<br>用hook函数注册自己的函数，这样注册的函数就会在适当的时候被调用。</p>
+<h2 id="Hooks的实现"><a href="#Hooks的实现" class="headerlink" title="Hooks的实现"></a>Hooks的实现<a id="orgheadline2"></a></h2><p>每一个hook都由宏 <code>AP_DECLARE_HOOK</code> 声明的，首先看看 <code>AP_DECLARE_HOOK</code><br>这个宏是怎么定义的。</p>
+<pre><code>/**
+ * Declare a hook function
+ * @param ret The return type of the hook
+ * @param name The hook&apos;s name (as a literal)
+ * @param args The arguments the hook function takes, in brackets
+ */
+#define AP_DECLARE_HOOK(ret, name, args) \
+  APR_DECLARE_EXTERNAL_HOOK(ap, AP, ret, name, args)</code></pre><p>宏 <code>APR_DECLARE_EXTERNAL_HOOK</code> 是在apr-utils中定义。下面来看一下<br><code>APR_DECLARE_EXTERNAL_HOOK</code> 的实现。</p>
+<pre><code>/* macro to declare the hook correctly */
+#define APR_DECLARE_EXTERNAL_HOOK(ns, link, ret, name, args) \
+  typedef ret ns##_HOOK_##name##_t args; \
+  link##_DECLARE(void) ns##_hook_##name(ns##_HOOK_##name##_t *pf, \
+                                       const char * const *aszPre, \
+                                       const char * const *aszSucc, \
+                                       int nOrder); \
+  link##_DECLARE(ret) ns##_run_##name args; \
+  APR_IMPLEMENT_HOOK_GET_PROTO(ns, link, name); \
+  typedef struct ns##_LINK_##name##_t \
+  { \
+  ns##_HOOK_##name_t *pFunc; \
+  const char *szName; \
+  const char * const *aszPredecessors; \
+  const char * const *aszSuccessors; \
+  int nOrder; \
+  } ns##_LINK_##name##_t;</code></pre><p>宏首先定义一个函数类型 <code>ns##_HOOK_##name_t</code> （定义的方式比较特别，<br>和一般使用的函数指针貌似有点差别:(，）; 然后定义了一个函数<br><code>ns##_hook_##name</code> ，使用这个函数就可以向这个hook注册一个函数了，注<br>册的函数的原型就由 <code>ns##_HOOK_##name##_t</code> 定义了。宏同样申明了函数<br><code>ns##_run_##name</code> 。</p>
+<p>下面看一下宏 <code>APR_IMPLEMENT_HOOK_GET_PROTO</code></p>
+<pre><code>/* macro to return the prototype of the hook function */
+#define APR_IMPLEMENT_HOOK_GET_PROTO(ns, link, name) \
+  link##_DECLARE(apr_array_header_t *) ns##_hook_get_##name(void)</code></pre><p>所以宏 <code>APR_IMPLEMENT_EXTERNAL_HOOK</code> 还声明了一个函数<br><code>ns##_hook_get_##name</code> 。</p>
+<p>最后宏 <code>APR_IMPLEMENT_EXTERNAL_HOOK</code> 定义了结构体<br><code>ns##_LINK_##name##_t</code> 。</p>
+<p>上面介绍了hook的声明， <code>AP_DECLARE_HOOK</code> 宏声明一个hook，宏要求三个<br>参数：hook函数的返回值类型 <code>ret</code> ，hook函数的名称 <code>name</code> 和hook函数<br>的参数列表 <code>args</code> 。该宏出现在头文件中以供其他函数使用被定义的hook。<br>以hook <code>header_parser</code> 为例， <code>header_parser</code> 的声明在<br><code>include/http_config.h</code> 文件中。 <code>AP_DECLARE_HOOK(int,
+   header_parser, (request_rec *r))</code> 一共做了几件事呢：<br>\#+ <a id="orgtarget1"></a></p>
+<ul>
+<li><code>typedef int ap_HOOK_header_parser_t (request_rec *r);</code><br>定义了一个类型ap_HOOK_header_parser_t，它是一个函数原型，返回值为<br>int，参数为request_rec *r。</li>
+<li><code>void ap_hook_header_parser(...)</code><br>声明了函数 <code>ap_hook_header_parser</code> ，返回类型为 <code>void</code> ，参数为<br><code>ap_HOOK_header_parser_t *pf</code> ,<br><code>const char * const *aszPre</code> ,<br><code>const char * const *aszSucc</code> ,<br><code>int nOrder</code> 。</li>
+<li><code>int ap_run_header_parser(...)</code><br>声明了函数 <code>ap_run_header_parser</code> ，返回类型为 <code>int</code> ，参数为<br><code>request_rec *r</code> 。</li>
+<li><code>apr_array_header_t * ap_hook_get_header_parser(void)</code><br>声明了函数 <code>ap_hook_get_header_parser</code> ，返回类型为<br><code>apr_array_header_t *</code> 。</li>
+<li><code>struct ap_LINK_header_parser_t</code><br>定义了结构体 <code>ap_LINK_header_parser_t</code> ，其成员有<br><code>ap_HOOK_header_parser_t *</code><br><code>const char *szName</code><br><code>const char * const *aszPredecessors</code><br><code>const char * const *aszSuccessors</code><br><code>int nOrder</code></li>
+</ul>
+<p>一共是两个数据类型和三个函数原型。</p>
+<p>下面来看一个hook的实现。同样以 <code>header_parser</code> 这个hook为例来看hook的<br>实现。</p>
+<p><code>header_parser</code> 的实现在 <code>server/config.c</code> 里面：</p>
+<pre><code>APR_HOOK_STRUCT(
+    APR_HOOK_LINK(header_parser)
+    APR_HOOK_LINK(pre_config)
+    APR_HOOK_LINK(post_config)
+    APR_HOOK_LINK(open_logs)
+    APR_HOOK_LINK(child_init)
+    APR_HOOK_LINK(handler)
+    APR_HOOK_LINK(quick_handler)
+    APR_HOOK_LINK(optional_fn_retrieve)
+    APR_HOOK_LINK(test_config)
+                )</code></pre><p>宏 <code>APR_HOOK_STRUCT</code> 和 <code>APR_HOOK_LINK</code> 定义在 <code>apr-utils</code> 中：</p>
+<pre><code>/* macro to declare the hook structure */
+#define APR_HOOK_STRUCT(members) \
+  static struct { members } _hooks;
+
+/* macro to link the hook structure */
+#define APR_HOOK_LINK(name) \
+  apr_array_header_t *link_##name;</code></pre><p>可以看到宏 <code>APR_HOOK_STRUCT</code> 定义了一个 <code>static struct</code> ，即<br><code>_hooks</code> 是一个 <code>static</code> 结构体，它的成员是一个或者多个<br><code>apr_array_header_t *</code> 类型的变量。（注意这个这个结构体是unnamed<br>struct，并且是static的，这样做的好处可以想想；unamed不是<br>anonymous&#x2026; ）</p>
+<p>hook  <code>header_parser</code> 在这里就对应着 <code>server/config.c</code> 里面的<br><code>_hooks</code> 结构体里面的 <code>apr_array_header_t *link_header_parser</code> 变量。</p>
+<p>通过前面的hook的声明部分，可以知道hook <code>header_paser</code> 的<a href="#orgtarget1">声明</a>声明了<br>三个函数，这三个函数在哪实现的呢？</p>
+<p>查看Apache HTTP Server的Development Document，可以知道，httpd里面的<br>hook有两大类：一类是没有返回值的hook，即hook函数返回类型为void；另<br>一类是有返回值的hook，一般是int类型的。</p>
+<p>如果hook函数的返回类型是void的，那么所有注册在这个hook上的函数都会<br>被执行，这样的hook是这样实现的：</p>
+<pre><code>/**
+ * Implement an Apache core hook that has no return code, and
+ * therefore runs all of the registered functions. The implementation
+ * is called ap_run_&lt;i&gt;name&lt;i&gt;.
+ *
+ * @param name The name of the hook
+ * @param args_decl The declaration of the arguments for the hook, for
+ * example &quot;(int x, void *y)&quot;
+ * @param args_use The arguments for the hook as used in a call, for
+ * example &quot;(x,y)&quot;
+ * @note If IMPLEMENTing a hook that is not linked into the Apache
+ * core, (e.g. within a dso) see APR_IMPLEMENT_EXTERNAL_HOOK_VOID.
+ */
+#define AP_IMPLEMENT_HOOK_VOID(name,args_decl,args_use) \
+  APR_IMPLEMENT_EXTERNAL_HOOK_VOID(ap,AP,name,args_decl,args_use)
+
+/**
+ * Implement a hook that has no return code, and therefore runs all of
+ * the registered functions
+ *
+ * @param ns The namespace prefix of the hook functions
+ * @param link The linkage declaration prefix of the hook
+ * @param name The name of the hook
+ * @param args_decl The declaration of the arguments for the hook
+ * @param args_use The names for the argumentsw for the hook
+ * @note The link prefix FOO corresponds to FOO_DECLARE() macro, which
+ * provide export linkage from the module that IMPLEMENTs the hook,
+ * and import linkage from external modules that link to the hook&apos;s
+ * module.
+ */
+#define APR_IMPLEMENT_EXTERNAL_HOOK_VOID(ns,link,args_decl,args_use) \
+  APR_IMPLEMENT_EXTERNAL_HOOK_BASE(ns,link,name) \
+  link##_DECLARE(void) ns##_run_##name args_decl \
+  { \
+  ns##_LINK_##name##_t *pHook; \
+  int n; \
+  if (!_hooks.link_##name) \
+    return; \
+  pHook = (ns##_LINK_##name##_t *)_hooks.link_##name-&gt;elts; \
+  for (n = 0; n &lt; _hooks.link_##name-&gt;nelts; ++n) \
+    pHook[n].pFunc args_use; \
+  }
+
+/* macro to implement the hook */
+#define APR_IMPLEMENT_EXTERNAL_HOOK_BASE(ns,link,name) \
+  link##_DECLARE(void) ns##_hook_##name(ns##_HOOK_##name##_t *pf, \
+                                        const char * const *aszPre, \
+                                        const char * const *aszSucc, \
+                                        int nOrder) \
+  { \
+    ns##_LINK_##name##_t *pHook; \
+    if (!_hooks.link_##name) \
+    { \
+    _hooks.link_##name = apr_array_make(apr_gblobal_pool, \
+                                        1, \
+                                        sizeof(ns##_LINK_##name##_t)); \
+    } \
+    pHook = apr_array_push(_hooks.link_##name); \
+    pHook-&gt;pFunc = pf; \
+    pHook-&gt;aszPredecessors = aszPre; \
+    pHook-&gt;aszSuccessors = aszSucc; \
+    pHook-&gt;nOrder = nOrder; \
+    pHook-&gt;szName = apr_hook_debug_current; \
+    if (apr_hook_debug_enabled) \
+      apr_hook_debug_show(#name, aszPre, aszSucc); \
+  } \
+  APR_IMPLEMENT_HOOK_GET_PROTO(ns,link,name)    \
+  {                                             \
+    return _hooks.link_##name;                  \
+  }</code></pre><p>在前面的介绍中，知道 <code>_hooks.link_##name</code> 的类型是<br><code>apr_array_header_t *</code> 类型的，在Apache APR的文档中有很好的说明。</p>
+<p>宏 <code>APR_IMPLMENT_EXTERNAL_HOOK_VOID</code> 首先调用宏<br><code>APR_IMPLEMENT_EXTERNAL_HOOK_BASE</code> ,HOOK_BASE宏实现了函数<br><code>ns##_hook_##name</code> 和 函数 <code>ns##_hook_get_##name</code> 。HOOK_VOID然后实现<br>了函数 <code>ns##_run_##name</code> 。这样可以看到，在hook声明过程中申明的三个<br>函数在这里都得到了实现。</p>
+<p>函数 <code>ns##_hook_##name</code> 主要是将参数中的hook函数添加到staitc结构体<br>中对应的array中；函数 <code>ns##_hook_get_##name</code> 则用于获取这个array；<br>最后一个函数 <code>ns##_run_##name</code> 则会运行所有这个array中所有的hook函<br>数。</p>
+<p>另外一类hook则是有返回值的，这样的hook又可以分为两类，一类是所有注<br>册的hook函数都被执行，另一类则是运行部分注册的hook函数，在循环执行<br>所有注册的hook函数的过程中，第一个不返回 <code>DECLINE</code> 的hook函数终止这<br>个循环并记录其返回值，后面的hook函数则不会被执行，然后将返回值返回<br>给hook的调用者，这样的hook的实现由宏 <code>AP_IMPLEMENT_HOOK_RUN_FIRST</code><br>完成：</p>
+<pre><code>/**
+ * Implement a hook that runs until a function returns something other
+ * than decline. If all functions return decline, the hook runner
+ * returns decline. The implemention is called ap_run_&lt;i&gt;name&lt;/i&gt;.
+ *
+ * @param ret The return type of the hook (and the hook runner)
+ * @param name The name of the hook
+ * @param args_decl The declaration of the arguments for the hook, for
+ * example &quot;(int x, void *y)&quot;
+ * @param args_use The arguments for the hook as used in a call for
+ * example &quot;(x,y)&quot;
+ * @param decline The &quot;decline&quot; return value
+ * @return decline or an error.
+ * @note If Implementing a hook that is not linked into the Apache
+ * core (e.g. within a dso) see APR_IMPLEMENT_EXTERNAL_HOOK_RUN_FIRST.
+ */
+#define AP_IMPLEMENT_HOOK_RUN_FIRST(ret,name,args_decl,args_use,decline) \
+  APR_IMPLEMENT_EXTERNAL_HOOK_RUN_FIRST(ap,AP,ret,name,args_decl, \
+                                        args_use,decline)
+
+/**
+ * Implement a hook that runs until the first function returns
+ * something other than the value of decline
+ * @param ns The namespace prefix of the hook functions
+ * @param link The linkage declaration prefix of the hook
+ * @param name The name of the hook
+ * @param ret Type to return
+ * @param args_decl The declaration of the argument for the hook
+ * @param args_use The name for the arguments for the hook
+ * @param decline Decline value
+ * @note The link prefix FOO corresponds to FOO_DECLARE() macros,
+ * which provide export linkage from the module that IMPLEMNTs the
+ * hook, and import linkage from external modules that link to the
+ * hook&apos;s module.
+ */
+#define APR_IMPLEMENT_EXTERNAL_HOOK_RUN_FIRST(ns,link,ret,name, \
+                                              args_decl, args_use, \
+                                              decline) \
+  APR_IMPLEMENT_EXTERNAL_HOOK_BASE(ns,link,name) \
+  link##DECLARE(ret) ns##_run_##name args_decl \
+  { \
+  ns##_LINK_##name##_t *pHook; \
+  int n; \
+  ret rv; \
+  \
+  if (!_hooks.link_##name) \
+    return decline; \
+  \
+  pHook = (ns##_LINK_##name##_t *)_hooks.link_##name-&gt;elts; \
+  for (n = 0; n &lt; _hooks.link_##name-&gt;nelts; ++n) \
+  { \
+  rv = pHook[n].pFunc args_use; \
+  if (rv != decline) \
+    return rv; \
+  } \
+  return decline; \
+  }</code></pre><p>可以看到， <code>AP_IMPLEMNET_HOOK_RUN_FIRST</code> 宏的区别只是实现的函数<br><code>ns##_run_##name</code> 不同：在循环执行所有注册hook函数的过程中，当遇到<br>第一个返回值不为decline的hook函数后，循环就终止了，后面的hook函数就<br>不会被执行了；其余的函数的实现则和void类型hook是一样的。</p>
+<p>有返回值的Hook的另外一种是所有注册的hook函数都会被执行，直到遇到错<br>误或者全部执行完了。这类hook的实现是由宏<br><code>AP_IMPLEMENT_HOOK_RUN_ALL</code> 完成的：</p>
+<pre><code>/**
+ * Implement an Apache core hook that runs until one of the functions
+ * returns something other than ok or decline. The return valie is
+ * then returned from the hook runner. If the hooks run to completion,
+ * then ok is returned. Note that if no hooks runs it would probably
+ * be more correct to return decline, but this currently does not do
+ * so. The implemention is called ap_run_&lt;i&gt;name&lt;/i&gt;.
+ *
+ * @param ret The return type of the hook (and the hook runner)
+ * @param name The name of the hook
+ * @param args_decl The declaration of the arguments for the hook, for
+ * example &quot;(int x, void *y)&quot;
+ * @param ok The &quot;ok&quot; return value
+ * @param decline The &quot;decline&quot; return value
+ * @return ok, decline, or an error
+ * @note If IMPLEMENTing a hook that is not linked into the Apache
+ * core, (e.g. within a dso) see APR_IMPLEMENT_EXTERNAL_HOOK_RUN_ALL.
+ */
+#define AP_IMPLEMENT_HOOK_RUN_ALL(ret,name,args_decl,args_use, \
+                                  ok,decline) \
+  APR_IMPLEMENT_EXTERNAL_HOOK_RUN_ALL(ap,AP,ret,name,args_decl, \
+                                      args_use,ok,decline)
+
+/** FIXME: note that this returns ok when noting is run. I suspect it
+ * should really return decline, but that breaks Apache currently - Ben
+ */
+/**
+ * Implement a hook that runs until one of the functions returns
+ * something other than OK or DECLINE
+ * @param ns The namespace prefix of the hook functions
+ * @param link The linkage declaration prefix of the hook
+ * @param ret Type to return
+ * @param name The name of the hook
+ * @param args_decl The declaration of the arguments for the hook
+ * @param args_use The names for the arguments for the hook
+ * @param ok Success value
+ * @param decline Decline value
+ * @note The link prefix FOO corresponds to FOO_DECLARE() macros,
+ * which provide export linkage from the module that IMPLEMENTs the
+ * hook, and import linkage from external modules that lik to the
+ * hook&apos;s module.
+ */
+#define APR_IMPLEMNET_EXTERNAL_HOOK_RUN_ALL(ns,link,ret,name, \
+                                            args_decl,args_use, \
+                                            ok,decline) \
+  APR_IMPLEMNET_EXTERNAL_HOOK_BASE(ns,link,name) \
+  link##_DECLARE(ret) ns##_run_##name args_decl \
+  { \
+  ns##_LINK_##name##_t *pHook; \
+  int n; \
+  ret rv; \
+  \
+  if (!_hooks.link_##name) \
+    return ok; \
+  \
+  pHook = (ns##_LINK_##name##_t *)_hooks.link_##name-&gt;elts; \
+  for (n = 0; n &lt; _hooks.link_##name-&gt;nelts; ++n) \
+  { \
+  rv = pHook[n].pFunc args_use; \
+  if (rv != ok &amp;&amp; rv != decline) \
+    return rv; \
+  } \
+  return ok; \
+  }</code></pre><p>宏 <code>APR_IMPLEMENT_EXTERNAL_HOOK_RUN_ALL</code> 和宏<br><code>APR_IMPLEMENT_EXTERNAL_HOOK_RUN_FIRST</code> 很相似，都需要检查注册函数<br>执行的返回值，只不过前者是在错误情况（返回值既不为ok也不是decline）<br>下终止循环，而后者是在非decline情况下就终止了循环；注意，前者这里有<br>一个FIXME标注，在没有hook函数被执行的情况下，前者仍然是返回ok的，这<br>和后者的返回decline是不同的。</p>
+<h2 id="Optional-Hook"><a href="#Optional-Hook" class="headerlink" title="Optional Hook"></a>Optional Hook<a id="orgheadline3"></a></h2><p>Apache2中除了有Hook之外，还有一类Optional hook，还没有仔细研究。</p>
+<h2 id="Apache2中的hook"><a href="#Apache2中的hook" class="headerlink" title="Apache2中的hook"></a>Apache2中的hook<a id="orgheadline4"></a></h2><ol>
+<li><p>access_checker</p>
+<pre><code>/* file: include/http_request.c 331 */
+/**
+ * This hook is used to apply additional access control to this
+ * resource. It runs *before* a user is authenticated, so this hook is
+ * really to apply additional restrictions independent of a user. It
+ * also runs independent of &apos;Require&apos; directive usage.
+ *
+ * @param r The current request
+ * @param OK, DECLINE, or HTTP_...
+ */
+AP_DECLARE_HOOK(int, access_checker, (request_rec *r))
+
+/* file: server/request.c 76 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int,access_checker,
+                          (request_rec *r),
+                          (r),
+                          DECLINE)</code></pre></li>
+<li><p>auth_checker</p>
+<pre><code>/* file: include/http_request.h 344 */
+/**
+ * This hook is used to check to see if the resource beging requested
+ * is available for the authenticated user (r-&gt;user and
+ * r-&gt;ap_auth_type). It runs after the access_checker and
+ * check_user_id hooks. Note that it will *only* be called if Apache
+ * determines that access control has been applied to this resource
+ * (though a &apos;Require&apos; directive).
+ *
+ * @param r The current request
+ * @return OK, DECLINE, or HTTP_...
+ */
+AP_DECLARE_HOOK(int, auth_checker, (request_rec *r))
+
+/* file: server/request.c 78 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(int,auth_checker,
+                            (request_rec *r),
+                            (r),
+                            DECLINE)</code></pre></li>
+<li><p>check_user_id</p>
+<pre><code>/* file: include/http_request.h 300 */
+/**
+ * This hook is used to analyse the request headers, authenticate the
+ * user, and set the user information in the request record (r-&gt;user
+ * and r-&gt;ap_auth_type). This hook is only run when Apache determines
+ * that authentication/authorization is required for this resource (as
+ * determined by the &apos;Require&apos; directive). It runs after the
+ * access_checker hook, and before the auth_checker hook.
+ *
+ * @param r The current request
+ * @return OK, DECLINE, or HTTP_...
+ */
+AP_DECLARE_HOOK(int,check_user_id, (request_rec *r))
+
+/* file: server/request.c 70 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(int,check_user_id,
+                            (request_rec *r),
+                            (r),
+                            DECLINE)</code></pre></li>
+<li><p>child_init</p>
+<pre><code>/* file: include/http_config.h 1022 */
+/**
+ * Run the child_init functions for each module
+ * @param pchild The child pool
+ * @param s The list of server_recs in this server
+ */
+AP_DECLARE_HOOK(void, child_init, (apr_pool_t *pchild, server_rec *s))
+
+/* file: server/config.c 153 */
+AP_IMPLEMENT_HOOK_VOID(child_init,
+                       (apr_pool_t *pchild, server_rec *s),
+                       (pchild, s))</code></pre></li>
+<li><p>create_connection</p>
+<pre><code>/* file: include/http_connection.h 94 */
+/**
+ * create_connection is a RUN_FIRST hook which allows modules to
+ * create connections. In general, you should not install filters with
+ * the create_connection hook. If you require vhost configuration
+ * information to make filter installation decisions, you must use the
+ * pre_connection or install_network_transport hook. This hook should
+ * close the connection if it encounters a fatal error condition.
+ *
+ * @param p The pool from which to allocate the connection record
+ * @param server The server record to create the connection too.
+ * @param csd The socket that has been accepted
+ * @param conn_id A unique identifier for this connection. The ID only
+ * needs to be unique at that time, not forever.
+ * @param sbh A handle to scoreboard information for this connection.
+ * @param alloc The bucket allocator to use for all bucket/bridge
+ * creations
+ * @return An allocated connection record or NULL
+ */
+AP_DECLARE_HOOK(conn_rec *, create_connection,
+                (apr_pool_t *p, server_rec *server, apr_socket_t *csd,
+                 long conn_id, void *sbh, apr_bucket_alloc_t *alloc))
+
+/* file: server/connection.c 40 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(conn_rec *,create_connection,
+                            (apr_pool_t *p, server_rec *server, apr_socket_t *csd, long conn_id, void *sbh, apr_bucket_alloc_t *alloc),
+                            (p, server, csd, conn_id, sbh, alloc),
+                            NULL)</code></pre></li>
+<li><p>create_request</p>
+<pre><code>/* file: include/http_request.h 261 */
+/**
+ * Gives modules a chance to create their request_config entry when
+ * the request is created.
+ * @param r The current request
+ * @ingroup hooks
+ */
+AP_DECLARE_HOOK(int, create_request, (request_rec *r))
+
+/* file: server/request.c 81 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, create_request,
+                          (request_rec *r),
+                          (r),
+                          OK, DECLINE)</code></pre></li>
+<li><p>default_port</p>
+<pre><code>/* file: include/http_protocol.h */
+/**
+ * Return the default port from the current request
+ * @param r The current request
+ * @return The current port
+ */
+AP_DECLARE_HOOK(apr_port_t, default_port, (const request_rec *r))
+
+/* file: server/protocol.c */
+AP_IMPLEMENT_HOOK_RUN_FIRST(unsigned short,default_port,
+                            (const request_rec *r),
+                            (r),
+                            0)</code></pre></li>
+<li><p>error_log</p>
+<pre><code>/* file: include/http_log.h 350 */
+/**
+ * hook method to log error messages
+ * @ingroup hooks
+ * @param file The file in which this function is called
+ * @param line The line number on which the function is called
+ * @param level The level of the this error message
+ * @param status The status code from the previous command
+ * @param s The server which we are logging for
+ * @param r The request which we are logging for
+ * @param pool Memeory pool to allocate from
+ * @param errstr Message to log
+ */
+AP_DECLARE_HOOK(void, error_log, (const char *file, int line,
+                                  int level, apr_status_t status,
+                                  const server_rec *s,
+                                  const request_rec *r,
+                                  apr_pool_t *pool,
+                                  const char *errstr))
+
+/* file: server/log.c 1116 */
+AP_IMPLEMENT_HOOK_VOID(error_log,
+                       (const char *file, int line, int level,
+                        apr_status_t status, const server_rec *s,
+                        const request_rec *r, apr_pool_t *pool,
+                        const char *errstr), (file, line, level,
+                                              status, s, r, pool,
+                                              errstr))</code></pre></li>
+<li><p>fatal_exception</p>
+<pre><code>/* file: include/ap_mpm.h 183 */
+AP_DECALRE_HOOK(int, fatal_exception, (ap_exception_info_t *ei))
+
+/* file: server/mpm_common.c 67 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, fatal_exception,
+                          (ap_exception_info_t *ei), (ei),
+                          OK, DECLINE)</code></pre></li>
+<li><p>fixups</p>
+<pre><code>/* file: include/http_request.h 309 */
+/**
+ * Allows modules to perform module-sepcific fixing of header
+ * fields. This is invoked just before any content-handler
+ * @param r The current request
+ * @return OK, DECLINE, or HTTP_...
+ */
+AP_DECLARE_HOOK(int, fixups, (request_rec *r))
+
+/* file: server/request.c 72 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int,fixups,
+                          (request_rec *r), (r),
+                          OK, DECLINE)</code></pre></li>
+<li><p>get_mgmt_items</p>
+<pre><code>/* file: include/http_core.h 685 */
+/**
+ * This hook provides a way for modules to provide mterics/statics
+ * about their operational status.
+ *
+ * @param p A pool to use to create entries in the hash table
+ * @param val The name of the paramter(s) that is wanted. This is
+ * tree-structured would be in the form (&apos;*&apos; is all the tree,
+ * &apos;module.*&apos; all of the module, &apos;module.foo.*&apos;, or &apos;module.foo.bar&apos;)
+ * @param ht The hash table to store the result. Keys are item names,
+ * and the value point to ap_mgmt_item_t strutures.
+ * @ingroup hooks
+ */
+AP_DECLARE_HOOK(int, get_mgmt_items,
+                (apr_pool_t *p, const char *val, apr_hash_t *ht))
+
+/* file: server/core.c 76 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, get_mgmt_items,
+                          (apr_pool_t *p, const char *val, apr_hash_t *ht),
+                          (p, val, ht),
+                          OK, DECLINE)</code></pre></li>
+<li><p>get_suexec_identity</p>
+<pre><code>/* file: os/unix/unixd.h */
+AP_DECLARE_HOOK(ap_unix_identity_t *, get_suexec_identiy, (const request_rec *r))
+
+/* file: os/unix/unixd.c 344 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(ap_unix_identity_t *, get_suexec_identity,
+                            (const request_rec *r), (r),
+                            NULL)</code></pre></li>
+<li><p>handler</p>
+<pre><code>/* file: include/http_config.h 1029 */
+/**
+ * Run the handler function for each module
+ * @param r The request_rec
+ * @remark non-wildcard handlers should HOOK_MIDDLE, wildcard HOOK_LAST
+ */
+AP_DECLARE_HOOK(int, handler, (request_rec *r))
+
+/* file: server/config.c 157 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(int, handler, (request_rec *r),
+                            (r), DECLINE)</code></pre></li>
+<li><p>header_parser</p>
+<pre><code>   #+ &lt;a id=&quot;orgtarget2&quot;&gt;&lt;/a&gt;
+
+1  /* file: include/http_config.h 975 */
+2  /**
+3   * Run the header parser functions for each module
+4   * @param r The current request
+5   * @return OK or DECLINED
+6   */
+7  AP_DECLARE_HOOK(int, header_parser, (request_rec *r))
+
+/* file: server/config.c 79 */
+AP_IMPLEMENT_RUN_ALL(int, header_parser,
+                     (request_rec *r),
+                     (r),
+                     OK, DECLINE)</code></pre></li>
+<li><p>http_scheme</p>
+<pre><code>/* file: include/http_protocol.h 592 */
+/**
+ * This hook allows modules to retrieve the http scheme for a
+ * request. This allows Apache modules to easily extend the schemes
+ * that Apache understands
+ * @param r The current request
+ * @return The http scheme from the request
+ */
+AP_DECLARE_HOOK(const char *, http_scheme, (const request_rec *r))
+
+/* file: server/protocol.c 1698 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(const char *, http_scheme,
+                            (const request_rec *r),
+                            (r),
+                            NULL)</code></pre></li>
+<li><p>insert_error_filter</p>
+<pre><code>/* file: include/http_protocol.h 45 */
+/**
+ * This hook allows modules to insert filters for the current error
+ * response
+ * @param r The current request
+ * @ingroup hooks
+ */
+AP_DECLARE_HOOK(void, insert_error_filter, (request_rec *r))
+
+/* file: modules/http/http_protocol.c 148 */
+AP_IMPLEMENT_HOOK_VOID(insert_error_filter, (request_rec *r), (r))</code></pre></li>
+<li><p>insert_filter</p>
+<pre><code>/* file: include/http_request.h 351 */
+/**
+ * This hook allows modules to insert filters for the current request
+ * @param r The current request
+ */
+AP_DECLARE_HOOK(void, insert_filter, (request_rec *r))
+
+/* file: server/request.c 80 */
+AP_IMPLEMENT_HOOK_VOID(insert_filter, (request_rec *r), (r))</code></pre></li>
+<li><p>log_transaction</p>
+<pre><code>/* file: include/http_protocol.h 584 */
+/**
+ * This hook allows modules to preform any module-specific logging
+ * activities over and above the normal server things.
+ * @param r The current request
+ * @return OK, DECLINE, or HTTP_...
+ */
+AP_DECLARE_HOOK(int, log_transaction, (request_rec *r))
+
+/* file: server/protocol.c 1696 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int,log_transaction,
+                          (request_rec *r), (r),
+                          OK, DECLINE)</code></pre></li>
+<li><p>map_to_storage</p>
+<pre><code>/* file: include/http_request.h 286 */
+/**
+ * This hook allow modules to set the per_dir_config based on their
+ * own context (such as &quot;&lt;proxy&gt;&quot; sections) and the responds to
+ * contextless requests such as TRACE that need no security or
+ * filesystem mapping.
+ * @param r The current request
+ * @return DONE or (HTTP_) if this contextless request was just
+ * fulfilled (such as TRACE), OK if this is not a file, or DECLINE  if
+ * this is a file.
+ * The core map_to_strorage (HOOK_RUN_REALLY_FIRST) will
+ * directory_walk and file_walk the r-&gt;filename.
+ */
+AP_DECLARE_HOOK(int, map_to_strorage, (request_rec *r))
+
+/* file: server/request.c 68 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(int,map_to_storage,
+                            (request_rec *r), (r),
+                            DECLINE)</code></pre></li>
+<li><p>monitor</p>
+<pre><code>/* file: include/mpm_common.h 379 */
+AP_DECLARE_HOOK(int, monitor, (apr_pool_t *p))
+
+/* file: server/mpm_common.c 74 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, monitor,
+                          (apr_pool_t *p),
+                          (p),
+                          OK, DECLINE)</code></pre></li>
+<li><p>open_logs</p>
+<pre><code>/* file: include/http_config.h 1014 */
+/**
+ * Run the open_logs function for each module
+ * @param pconf The config pool
+ * @param plog The logging streams pool
+ * @param ptemp The temporary pool
+ * @param s The list of server_recs
+ * @return OK or DECLINED on success anything else is a error
+ */
+AP_DECLARE_HOOK(int, open_logs, (apr_pool_t *pconf, apr_pool_t *plog,
+                                 apr_pool_t *ptemp, server_rec *s))
+
+/* file: server/config.c 148 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, open_logs,
+                          (apr_pool_t *pconf, apr_pool_t *plog,
+                           apr_pool_t *ptemp, server_rec *s),
+                          (pconf, plog, ptemp, s),
+                          OK, DECLINE)</code></pre></li>
+<li><p>optional_fn_retrieve</p>
+<pre><code>/* file: include/http_config.h 1049 */
+/**
+ * Retrieve the optional functions for each module.
+ * This is run immediately before the server starts. Optional
+ * functions should be registered during the hook registration phase.
+ */
+AP_DECLARE_HOOK(void, optional_fn_retrieve, (void))
+
+/* file: server/config.c 163 */
+AP_IMPLEMENT_HOOK_VOID(optional_fn_retrieve, (void), ())</code></pre></li>
+<li><p>post_config</p>
+<pre><code>/* file: include/http_config.h 1003 */
+/**
+ * Run the post_config function for each module
+ * @param pconf The config pool
+ * @param plog The logging streams pool
+ * @param ptemp The temporary pool
+ * @param s The list of server_recs
+ * @return OK or DECLINED on success anything else is a error
+ */
+AP_DECLARE_HOOK(int, post_config, (apr_pool_t *pconf, apr_pool_t *plog
+                                   apr_pool_t *ptemp, server_rec *s))
+
+/* file: server/config.c 91 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, post_config,
+                          (apr_pool_t *pconf, apr_pool_t *plog,
+                           apr_pool_t *ptemp, server_rec *s),
+                          (pconf, plog, ptemp, s),
+                          OK, DECLINE)</code></pre></li>
+<li><p>post_read_request</p>
+<pre><code>/* file: include/http_protocol.h 576 */
+/**
+ * post_read_request --- run right after read_request or
+ * internal_redirect and not run during any subrequests.
+ */
+/**
+ * This hook allows modules to affect the request immediately after
+ * the request has been read, and before any other phases have been
+ * processes. This allows modules to make decisions based upon the
+ * input header fields
+ * @param r The current request
+ * @return OK or DECLINE
+ */
+AP_DECLARE_HOOK(int, post_read_request, (request_rec *r))
+
+/* file: server/protocol.c 1694 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, post_read_request,
+                          (request_rec *r), (r),
+                          OK, DECLINE)</code></pre></li>
+<li><p>pre_config</p>
+<pre><code>/* file: include/http_config.h 984 */
+/**
+ * Run the pre_config function for each module
+ * @param pconf The config pool
+ * @param plog The logging streams pool
+ * @param ptemp The temporary pool
+ * @return OK or DECLINED on success anything else is a error
+ */
+AP_DECLARE_HOOK(int, pre_config, (apr_pool_t *pconf, apr_pool_t *plog,
+                                  apr_pool_t *temp))
+
+/* file: server/config.c 82 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, pre_config,
+                          (apr_pool_t *pconf, apr_pool_t *plog,
+                           apr_pool_t *ptemp),
+                          (pconf, plog, ptemp),
+                          OK, DECLINE)</code></pre></li>
+<li><p>pre_connection</p>
+<pre><code>/* file: include/http_connection.h 108 */
+/**
+ * This hook gives protocol modules an opportunity to set everything
+ * up before calling the protocol handler. All pre_connection hooks
+ * are run until one returns something other than ok or decline
+ *
+ * @param c The connection on which the request has been received.
+ * @param csd The mechanism on which this connection is to be
+ * read. Most times this will be a socket, but it is up to the module
+ * that accepts the request to determine the exact type.
+ * @return OK or DECLINE
+ */
+AP_DECLARE_HOOK(int, pre_connection, (conn_rec *C, void *csd))
+
+/* file: server/connection.c 44 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, pre_connection,
+                          (conn_rec *c, void *csd),
+                          (c, csd),
+                          OK, DECLINE)</code></pre></li>
+<li><p>pre_mpm</p>
+<pre><code>/* file: include/scoreboard.h 212 */
+/**
+ * Hook for post scoreboard createion, pre mpm.
+ * @param p Apache pool to allocate from
+ * @param sb_type
+ * @return OK or DECLINE on success; anything else is a error
+ */
+AP_DECLARE_HOOK(int, pre_mpm, (apr_pool_t *p, ap_scoreboard_e sb_type))
+
+/* file: server/scoreboard.c 60 */
+AP_IMPLEMENT_HOOK_RUN_ALL(int, pre_mpm,
+                          (apr_pool_t *p, ap_scoreboard_e sb_type),
+                          (p, sb_type),
+                          OK, DECLINE)</code></pre></li>
+<li><p>process_connection</p>
+<pre><code>/* file: include/http_connection.h 118 */
+/**
+ * This hook implements different protocols. After a connection has
+ * been established, the protocol module must read and serve the
+ * request. This function does that for each protocol module. Ths
+ * first protocol module to handle the request is the last module run.
+ *
+ * @param c The connection on which the request has been received.
+ * @return OK or DECLINE
+ */
+AP_DECLARE_HOOK(int, process_connection, (conn_rec *c))
+
+/* file: server/connection.c 43 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(int, process_connection,
+                            (conn_rec *c), (c),
+                            DECLINE)</code></pre></li>
+<li><p>quick_handler</p>
+<pre><code>/* file: include/http_config.h 1042 */
+/**
+ * Run the quick handler functions for each module. The quick_handler
+ * is run before any other requests hooks are called (location_walk,
+ * directory_walk, access checking, et. al.). This hook was added to
+ * provide a quick way to server content from a URI keyed cache.
+ *
+ * @param r The request_rec
+ * @param lookup_uri Controls whether the caller actually wants
+ * content of not. look up is set when the quick_handler is called out
+ * of ap_sub_req_lookup_uri()
+ */
+AP_DECLARE_HOOK(int, quick_handler, (request_rec *r, int lookup_uri))
+
+/* file: server/config.c 160 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(int, quick_handler,
+                            (request_rec *r, int lookup),
+                            (r, lookup),
+                            DECLINE)</code></pre></li>
+<li><p>test_config</p>
+<pre><code>/* file: include/http_config.h 993 */
+/**
+ * Run the test_config function for each module; this hook is run
+ * only if the server was invoked to test the configuration syntax.
+ * @param pconf The config pool
+ * @param s The list of server_recs
+ */
+AP_DECLARE_HOOK(void, test_config, (apr_pool_t *pconf, server_rec *s))
+
+/* file: server/config.c 87 */
+AP_IMPLEMENT_HOOK_VOID(test_config,
+                       (apr_pool_t pconf, server_rec *s),
+                       (pconf, s))</code></pre></li>
+<li><p>translate_name</p>
+<pre><code>/* file: include/http_request.h 271 */
+/**
+ * This hook allows modules an opportunity to translate the URI into
+ * an actual filename. If no modules do anything special, the server&apos;s
+ * default rules will be followed.
+ * @param r The current request
+ * @return OK, DECLINE, or HTTP_...
+ */
+AP_DECLARE_HOOK(int, translate_name, (request_rec *r))
+
+/* file: server/request.c 66 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(int, transalte_name,
+                            (request_rec *r),
+                            (r), DECLINE)</code></pre></li>
+<li><p>type_checker</p>
+<div class="org-center">
+    /* file: include/http_request.h 319 */
+    /**
+     * This routine is called to determine and/or set the various document
+     * type information bits, link Content-type (via r->content_type),
+     * language, et cetera.
+     * @param r The current request
+     * @return OK, DECLINE, or HTTP_...
+     */
+    AP_DECLARE_HOOK(int, type_checker)
+
+<pre><code>/* file: server/request.c 74 */
+AP_IMPLEMENT_HOOK_RUN_FIRST(int, type_checker,
+                            (request_rec *r),
+                            (r),
+                            DECLINE)</code></pre></div>
+
+</li>
+</ol>
+<p>够多吧。。</p>
+<h1 id="Filters"><a href="#Filters" class="headerlink" title="Filters"></a>Filters<a id="orgheadline7"></a></h1><p>Filters是Apache2中的另一个特点，在一般http server中，请求从客户端发<br>送，server接受后直接交给http server处理，http处理后的结果则直接通过<br>网络返回给客户端；但在Apache2中，从客户端发送来的请求，可以被Apache2<br>中的模块处理后，再交于http模块处理请求，http模块处理后返回的结果也不<br>是直接返回给客户端，其他的模块可以先处理http模块的返回结果后，再传给<br>客户端，这就是Apache2中的filters。</p>
+<p>模块可以创作input_filter或者output_filter，http请求在被结果后，请求<br>首先被这些input_filter处理，一层层的input_filter处理完成后，在由http<br>模块来处理http请求，http模块的处理结果则首先被output_filter处理，所<br>有的output_filter处理完成后，最后通过网络发送出去。</p>
+<p>filters的设计使得某些功能相当容易实现，比如加解密操作，压缩与解压缩<br>操作等等。</p>
+<h2 id="filter的使用"><a href="#filter的使用" class="headerlink" title="filter的使用"></a>filter的使用<a id="orgheadline6"></a></h2><p>在模块中，filters需要注册:</p>
+<pre><code>/**
+ * This function is used to register an output filter with the
+ * system. After this registration is performed, then a filter may be
+ * added into the filter chian by using ap_add_output_filter() and
+ * simply specifying the name. It may also be used as a provider under
+ * mod_filter. This is (equivalent to)
+ * ap_register_output_filter_protocol with proto_flag=0, and is
+ * retained for back-compatibility with 2.0 modules.
+ *
+ * @param name The name to attach to the filter function
+ * @param filter_func The filter function to name
+ * @param filter_init The function to call before the filter handlers
+ * are invoked
+ * @param ftype The type of filter function, either ::AP_FTYPE_CONTENT
+ * or ::AP_FTYPE_CONNECTION
+ */
+AP_DECLARE(ap_filter_rec_t *) ap_register_output_filter(const char *name,
+                                                        ap_out_filter_func filter_func,
+                                                        ap_init_filter_func filter_init,
+                                                        ap_filter_type ftype);
+
+/**
+ * This function is used to register an input filter with the
+ * system. After this registration is performed, then a filter may be
+ * added into the filter chain by using ap_add_input_filter() and
+ * simply specifying the name.
+ *
+ * @param name The name to attach to the filter function
+ * @param filter_func The function to call before the filter handlers
+ * are invoked
+ * @param ftype The type of filter function, either ::AP_FTYPE_CONTENT
+ * or ::AP_FTYPE_CONNECTION
+ */
+AP_DECLARE(ap_filter_rec_t *r) ap_register_input_filter(const char *name,
+                                                        ap_in_filter_func filter_func,
+                                                        ap_init_filter_func filter_init,
+                                                        ap_filter_type ftype);</code></pre><p>在filter被注册后，就可以将filter加入到filter chain之中了，加入的方<br>法有有很多。下面两个函数可以将filter添加到filter chain：</p>
+<pre><code>/*
+ * Add a filter to the current request. Filters are added in a FIFO
+ * manner. The first filter added will be the first filter called.
+ * @param name The name of the filter to add
+ * @param ctx Context data to set in the filter
+ * @param r The request to add this filter for (or NULL if it isn&apos;t
+ * associated with a request)
+ * @param c The connection to add this filter for
+ */
+AP_DECLARE(ap_filter_t *) ap_add_output_filter(const char *name,
+                                               void *ctx,
+                                               request_rec *r,
+                                               conn_rec *c);
+
+/*
+ * Adds a named filter into the filter chain on the specified request record.
+ * The filter will be installed with the specified context pointer.
+ *
+ * Filters added in this way will be always be placed at the end of
+ * the filters that have the same type (thus, the filters have the
+ * same order as the calls to ap_add_filter). If the current filter
+ * chain contains filters from another request, than this filter will
+ * be added before those other filters.
+ *
+ * To re-iterate that last comment. This function is building a FIFO
+ * list of filters. Take note of that when adding you filter to the chain.
+ *
+ * @param name The name of the filter to add
+ * @param ctx Context data to provide to the filter
+ * @param r The request to add this filter for (or NULL if it isn&apos;t
+ * associated with a request)
+ * @param c The connection to added the filter for
+ */
+AP_DECLARE(ap_filter_t *) ap_add_input_filter(const char *name,
+                                              void *ctx,
+                                              request_rec *r,
+                                              conn_rec *c);</code></pre><p>一种方法是首先使用hook insert_filter，向这个hook注册一个hook函数，在函<br>数里决定是否添加filter到filter chain。</p>
+<p>源代码modules/experimental/里面有两个最简单的filter示例：<br>mod_case_filter和mode_case_filter_in，这两个filter的功能就是把输出<br>或者输入全部大写化，一个简单的 <code>toupper</code> 操作。</p>
+<h1 id="请求的处理"><a href="#请求的处理" class="headerlink" title="请求的处理"></a>请求的处理<a id="orgheadline13"></a></h1><p>这里以hook执行的顺序来解释http请求在Apache2中处理的过程。在accept到<br>一个连接后，首先执行的hook是 <code>create_connection</code> :</p>
+<pre><code>/*
+ * We now have a connection, so set it up with the appropriate socket
+ * options, file descriptors, and read/write buffer.
+ */
+current_connection = ap_run_create_connection(ptrans, ap_server_conf, csd, my_child_num, sbh, bucket_alloc);</code></pre><p>然后是 <code>pre_connection</code> ，在函数 <code>ap_process_connection</code> 中被调用：</p>
+<pre><code>rc = ap_run_pre_connection(c, csd);</code></pre><p>再是 <code>process_connection</code> ，同样是在函数 <code>ap_process_connection</code> 中<br>被调用的：</p>
+<pre><code>ap_run_process_connection(c);</code></pre><p>这些hook运行完了，处理就处理完了。</p>
+<p>下面看有那些模块都向这些hook注册了hook函数的呢？</p>
+<h2 id="create-connection的注册者"><a href="#create-connection的注册者" class="headerlink" title="create_connection的注册者"></a>create_connection的注册者<a id="orgheadline8"></a></h2><p><code>create_connection</code> 是一个RUN_FIRST类型的hook，为什么呢？因为在<br>server/connection.c里面的 <code>create_connection</code> 的实现是这样的:</p>
+<pre><code>AP_IMPLEMENT_HOOK_RUN_FIRST(conn_rec *, create_connection,
+                            (apr_pool_t *p,
+                             server_rec *server,
+                             apr_socket_t *csd,
+                             long conn_id,
+                             void *sbh,
+                             apr_bucket_alloc_t *alloc),
+                            (p, server, csd, conn_id, sbh, alloc),
+                            NULL)</code></pre><p>这最后一个参数是NULL，代表什么意思呢，在前面的hook实现中已经知道了，<br>最后一个参数是 <code>decline</code> 的值，这就说明如果 <code>create_connect</code> 的注册<br>函数如果返回NULL就是返回了decline了，这样下一个hook将继续执行，如果<br>返回的是非NULL，后面的hook就不会被执行的，将直接返回这个值给<br><code>create_connection</code> 的调用者。</p>
+<p>下面看看都有谁注册了宏 <code>create_connection</code> 呢？这个只要看谁调用了<br><code>ap_hook_create_connection</code> 就可以了：发现只有已有一个模块core<br>module注册了这个hook：</p>
+<pre><code>ap_hook_create_connection(core_create_conn, NULL, NULL,
+                          APR_HOOK_REALLY_LAST);</code></pre><p><code>core_create_conn</code> 做的事情就是创建 <code>conn_rec</code> 对象，并填好其中的各<br>个字段，如本地ip，远端ip等等。</p>
+<h2 id="pre-connection的注册者"><a href="#pre-connection的注册者" class="headerlink" title="pre_connection的注册者"></a>pre_connection的注册者<a id="orgheadline9"></a></h2><p><code>pre_connection</code> 是一个RUN_ALL类型的hook：</p>
+<pre><code>AP_IMPLEMENT_HOOK_RUN_ALL(int, pre_connection,
+                          (conn_rec *c, void *csd),
+                          (c, csd),
+                          OK,
+                          DECLINE)</code></pre><p>注册hook <code>pre_connection</code> 的模块就很多了。下面列出version 2.2.21源<br>代码中注册了 <code>pre_connection</code> 的模块：</p>
+<ol>
+<li><p>core_module<br>core_module(server/core.c)在register hooks的过程中注册了<br><code>pre_connection</code>:</p>
+<pre><code>ap_hook_pre_connection(core_pre_connection, NULL, NULL,
+                       APR_HOOK_REALLY_LAST);</code></pre><p><code>core_pre_connection</code> 设置了连接的timeout等属性，并添加了一个<br>input_filter和一个output_filter：</p>
+<pre><code>ap_add_input_filter_handle(ap_core_input_filter_handle, net, NULL, net-&gt;c);
+ap_add_output_filter_handle(ap_core_output_filter_handle, net, NULL, net-&gt;c);</code></pre></li>
+<li><p>logio_module<br>logio_module(modules/loggers/mod_logio.c)注册了<br><code>pre_connection</code> :</p>
+<pre><code>ap_hook_pre_connection(logio_pre_conn, NULL, NULL, APR_HOOK_MIDDLE);</code></pre><p>函数 <code>logio_pre_conn</code> 同样添加了两个filter到filter chain里面：</p>
+<pre><code>ap_add_input_filter(logio_filter_name, NULL, NULL, c);
+ap_add_output_filter(logio_filter_name, NULL, NULL, c);</code></pre></li>
+<li><p>dumpio_module</p>
+<pre><code>  dumpio\_module(modules/debug/mod\_dumpio.c)：
+
+ap_hook_pre_connection(dumpio_pre_conn, NULL, NULL, APR_HOOK_MIDDLE);</code></pre><p>函数 <code>dumpio_pre_conn</code> 根据配置选择是否添加两个filters：</p>
+<pre><code>dumpio_conf_t *ptr =
+    (dumpio_conf_t *) ap_get_module_config(c-&gt;base_server-&gt;module_config,
+                                           &amp;dumpio_module);
+
+if (ptr-&gt;enable_input)
+  ap_add_input_filter(&quot;DUMPIO_IN&quot;, NULL, NULL, c);
+if (ptr-&gt;enable_output)
+  ap_add_output_filter(&quot;DUMPIO_OUT&quot;, NULL, NULL, c);</code></pre></li>
+<li><p>ssl_module</p>
+<pre><code>  ssl\_module(modules/ssl/mod\_ssl.c)：
+
+ap_hook_pre_connection(ssl_hook_pre_connection, NULL, NULL, APR_HOOK_MIDDLE);</code></pre></li>
+<li><p>nwssl_module</p>
+<pre><code>  nwssl\_module(modules/arch/netware/mod\_nw\_ssl.c)：
+
+ap_hook_pre_connection(nwssl_pre_connection, NULL, NULL, APR_HOOK_MIDDLE);</code></pre></li>
+<li><p>example_module </p>
+<pre><code>  示例模块example\_module(modules/experimental/mod\_example.c)：
+
+ap_hook_pre_connection(x_pre_connection, NULL, NULL, APR_HOOK_MIDDLE);</code></pre><p>函数 <code>x_pre_connection</code> 什么也没做，之是简单的log trace一下。</p>
+</li>
+</ol>
+<h2 id="process-connection的注册者"><a href="#process-connection的注册者" class="headerlink" title="process_connection的注册者"></a>process_connection的注册者<a id="orgheadline10"></a></h2><p><code>process_connection</code> 是一个RUN_FIRST类型的hook，在<br>server/connection.c里面：</p>
+<pre><code>AP_IMPLEMENT_HOOK_RUN_FIRST(int, process_connection,
+                            (conn_rec *r),
+                            (c),
+                            DECLINE)</code></pre><p>注册 <code>process_connection</code> 的模块有：</p>
+<ol>
+<li><p>http_module</p>
+<pre><code>/*
+ * If we are using an MPM that supports Async Connections,
+ * use a different processing function
+ */
+int async_mpm = 0;
+if (ap_mpm_query(AP_MPMQ_IS_ASYNC, &amp;async_mpm) == APR_SUCCESS
+    &amp;&amp; async_mpm == 1) {
+  ap_hook_process_connection(ap_process_http_async_connection,
+                             NULL,
+                             NULL,
+                             APR_HOOK_REALLY_LAST);
+}
+else {
+  ap_hook_process_connection(ap_process_http_connection,
+                             NULL,
+                             NULL,
+                             APR_HOOK_REALLY_LAST);
+}</code></pre><p>函数 <code>ap_mpm_query</code> 是每个MPM都必须实现的函数，用于查询MPM的属性，<br>http_module在这里查询了 <code>AP_MPMQ_IS_ASYNC</code> 这个属性，目前在所有<br>的MPM中，只有event这个MPM支持 <code>AP_MPMQ_IS_ASYNC</code> 这个属性，所以<br>这里主要观察函数 <code>ap_process_http_connection</code> :</p>
+<p><code>ap_process_http_connection</code> 的主体是一个循环的调用<br><code>ap_read_request</code> :</p>
+<pre><code>static int ap_process_http_connection(conn_rec *c)
+{
+  request_rec *r;
+  apr_socket_t *csd = NULL;
+  /*
+   * Read and process each request found on our connection
+   * until no request are left or we decide to close.
+   */
+  ap_update_child_status(c-&gt;sbh, SERVER_BUSY_READ, NULL);
+  while ((r = ap_read_request(c)) != NULL) {
+    /* ... loop body before process request ... */
+    /* process the request if it was read without error */
+    if (r-&gt;status == HTTP_OK)
+      ap_process_request(r);
+    /* ... loop body after process request ... */
+  }
+
+  return OK;
+}</code></pre><p>下面看看函数 <code>ap_read_request</code> ：</p>
+<pre><code>/* file: server/protocol.c:845 */
+request_rec *ap_read_request(conn_rec *conn)
+{
+  request_rec *r;
+  /* ... construct the request_rec object ... */
+  r = apr_pcalloc(p, sizeof(request_rec));
+  /* set each properties of r */
+  /* Must be set before we run create request hook */
+  ap_run_create_request(r);
+
+  /* Get the request... */
+
+  ap_add_input_filter_handle(ap_http_input_filter_handle,
+                             NULL, r, r-&gt;connection);
+
+  /* ... */
+
+  if ((access_status = ap_run_post_read_request(r))) {
+    /* ... */
+  }
+
+  ap_run_log_transaction(r);
+
+  /* ... */
+
+  return r;
+}</code></pre><p>函数 <code>ap_read_request</code> 又运行了hook create_request和hook<br>post_read_request。</p>
+<p>在 <code>ap_read_request</code> 成功且没有发生错误后，就表示请求已经成功的<br>接收到了，然后继续由<br><code>ap_process_request</code> 来处理了，下面接续看函数<br><code>ap_process_request</code> :</p>
+<pre><code>/* file: modules/http/http_request.c */
+void ap_process_request(request_rec *r)
+{
+  /* Give quick handlers a shot at serving the request on the fast path,
+   * bypassing all of the other Apache hooks.
+   */
+  if (ap_extended_status)
+    ap_time_process_request(r-&gt;connection-&gt;sbh, START_PREQUEST);
+  access_status = ap_run_quick_handler(r, 0); /* Not a look-up request
+                                               * */
+  if (access_status == DECLINE) {
+    access_status = ap_process_request_internal(r);
+    if (access_status == OK) {
+      access_status = ap_invoke_handler(r);
+    }
+  }
+
+  if (access_status == DONE) {
+    /* e.g., something not in storage like TRACE */
+    access_status = OK;
+  }
+
+  if (access_status == OK) {
+    ap_finalize_request_protocol(r);
+  }
+  else {
+    r-&gt;status = HTTP_OK;
+    ap_die(access_status, r);
+  }
+
+  /*
+   * We want to flush the last packet if this isn&apos;t a pipelining
+   * connection *before* we start into logging. Suppose that logging
+   * cause a DNS lookup to occur, which may have a high latency. If we
+   * hold off on this packet, then it&apos;ll appear like the link is
+   * stalled when really it&apos;s the application that&apos;s stalled.
+   */
+  check_pipeline_flush(r);
+  ap_update_child_status(r-&gt;connection-&gt;sbh, SERVER_BUSY_LOG, r);
+  ap_run_log_transaction(r);
+  if (ap_extended_status)
+    ap_time_process_request(r-&gt;connection-&gt;sbh, STOP_PREQUEST);
+}</code></pre><p>函数 <code>ap_process_request</code> 首先运行了hook quick_handler，然后主要<br>调用了三个函数：<br><code>ap_process_request_internal</code> ， <code>ap_invoke_handler</code> 和<br><code>ap_finalize_request_protocol</code> 。</p>
+<p>从Apache2的developer文档中，可以看到函数<br><code>ap_process_request_internal</code> 可以分为下面几个阶段：</p>
+<ul>
+<li>Request Parsing Phase<br>这阶段的动作有URI的检查，Location Walk，translate name (hook<br>translate_name), map to storage (hook map_to_storage)，Header<br>parse (hook header_parser)。</li>
+<li>Security Phase</li>
+<li>Preparation Phase<br>这阶段主要运行两个hook：type_checker 和 fixups.</li>
+</ul>
+<p>上面三个阶段完成后，下面一步就是相应内容的产生，所以fixup就在产<br>生相应内容之前运行的最后一个hook了。<br>函数 <code>ap_invoke_handler</code> 继续完成下面这个阶段：</p>
+<ul>
+<li><p>Handler Phase<br>这个阶段首先运行hook insert_filter，然后初始化filters，然后运<br>行hook handler：</p>
+<pre><code>result = ap_run_handler(r);</code></pre></li>
+</ul>
+<p><code>ap_process_request</code> 最后调用了函数<br><code>ap_finalize_request_protocol</code> 。</p>
+<p>这样这个请求就被处理完成了。</p>
+</li>
+<li><p>reqtimeout_module</p>
+<pre><code>/*
+ * mod_reqtimeout needs to be called before ap_process_http_request
+ * (which is run at APR_HOOK_REALLY_LAST) but after all other protocol
+ * modules. This ensures that it only influences normal http
+ * connections and not e.g. mod_ftp. Also, if mod_reqtimeout used the
+ * pre_connection hook, it would be insert on mod_proxy&apos;s backend
+ * connections.
+ */
+ap_hook_process_connection(reqtimeout_init, NULL, NULL, APR_HOOK_LAST);</code></pre><p>reqtimeout_module是给Apache2 server提供设置超时的一个模块，提供<br>了很细致的超时控制，如接受http header的超时定时器，接受body的超<br>时定时器等。</p>
+<p><code>reqtimeout_init</code> 所做的就是获取配置信息等工作。</p>
+</li>
+<li><p>echo_module</p>
+<pre><code>ap_hook_process_connection(process_echo_connection, NULL,
+                           NULL, APR_HOOK_MIDDLE);</code></pre><p>echo_module是什么模块呢？原来Apache的模块中有一类是协议模块，做<br>为http server的Apache2，http_module是必不可少的，此外还有一些协<br>议模块如ftp模块，ftp_module则可以使Apache2变成一个ftp server。<br>echo_module也是一个协议模块，只不过echo_module实现的协议相当简单：<br>echo server，开启echo_module后，telnet到Apache2 server上，<br>echo_module就简单的返回所有接收到的数据。</p>
+<p>所以函数 <code>process_echo_connection</code> 就很简单，它首先得到配置，查<br>看echo是否被启动，如果没有启用就返回DECLINE，如果启用了则从接受<br>到的数据中一行行的读取，没读取一行就返回同样的数据给客户端。</p>
+</li>
+<li><p>example_module</p>
+<pre><code>ap_hook_process_connection(x_process_connection, NULL, NULL,
+                           APR_HOOK_MIDDLE);</code></pre><p>example_module在前面提到了是Apache2的一个示例模块快，给模块开发者提供一个示<br>范。所以在 <code>x_process_connection</code> 函数中，example_module什么事情<br>也没有做，只是返回DECLINE。</p>
+</li>
+</ol>
+<p>完了。</p>
+<h2 id="request-rec结构"><a href="#request-rec结构" class="headerlink" title="request_rec结构"></a>request_rec结构<a id="orgheadline12"></a></h2><p>request_rec是一个庞大的结构</p>
+<h3 id="request-time"><a href="#request-time" class="headerlink" title="request_time"></a>request_time<a id="orgheadline11"></a></h3><p>request_time表示接收到这个请求的时间，在函数 <code>read_request_line</code><br>里面被标记上了，它又被 <code>ap_read_request</code> 调用，在上面知道了<br><code>ap_read_request</code> 是 <code>ap_process_connection</code> 的第一步。</p>
+<h1 id="Notes"><a href="#Notes" class="headerlink" title="Notes"></a>Notes<a id="orgheadline14"></a></h1><ul>
+<li>Last update: <span class="timestamp-wrapper"><span class="timestamp">[2011-11-24 Thu 16:46] </span></span></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2013/06/28/apache2-read/" data-id="cklr2sz2f00007woq10rdcic6" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/http/" rel="tag">http</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-my-openbox-configuration" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/06/28/my-openbox-configuration/" class="article-date">
+  <time datetime="2013-06-28T22:47:41.000Z" itemprop="datePublished">2013-06-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Desktop/">Desktop</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/06/28/my-openbox-configuration/">我的 Openbox 窗口管理器的配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="前话"><a href="#前话" class="headerlink" title="前话"></a>前话<a id="orgheadline1"></a></h1><p>在折腾了Gnome, KDE, XFCE, LXDE后，现在还是用着LXDE, 其实主要原因是<br>LXDE使用Openbox作为它的WM，和LXDE的简单。</p>
+<p>Openbox的高度可配置性比GDM，KDM都好些，对窗口的管理更有力一些，当然<br>如果你是最大化流，这个就没多大意义了。</p>
+<h1 id="窗口的移动"><a href="#窗口的移动" class="headerlink" title="窗口的移动"></a>窗口的移动<a id="orgheadline2"></a></h1><p>首先我喜欢的配置就是对新建窗口的移动，如将窗口移动到屏幕中央，移动到<br>屏幕左，右，上，下侧：</p>
+<pre><code>&lt;keybind key=&quot;W-c&quot;&gt;
+  &lt;action name=&quot;MoveToCenter&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-w&quot;&gt;
+  &lt;action name=&quot;MoveToEdge&quot;&gt;
+    &lt;direction&gt;north&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-s&quot;&gt;
+  &lt;action name=&quot;MoveToEdge&quot;&gt;
+    &lt;direction&gt;south&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-a&quot;&gt;
+  &lt;action name=&quot;MoveToEdge&quot;&gt;
+    &lt;direction&gt;west&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-d&quot;&gt;
+  &lt;action name=&quot;MoveToEdge&quot;&gt;
+    &lt;direction&gt;east&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;</code></pre><p>这样就可以使用Windows+c将窗口移动到屏幕中央，<br>Windows+w将窗口移动到屏幕上侧，<br>Windows+s将窗口移动到屏幕下侧，<br>Windows+a将窗口移动到屏幕左侧，<br>Windows+d将窗口移动到屏幕右侧。</p>
+<h1 id="窗口的拉伸"><a href="#窗口的拉伸" class="headerlink" title="窗口的拉伸"></a>窗口的拉伸<a id="orgheadline3"></a></h1><p>除了将窗口移动到屏幕的各个方位外，还可以将窗口拉伸到某一边缘：</p>
+<pre><code>&lt;keybind key=&quot;W-Up&quot;&gt;
+  &lt;action name=&quot;GrowToEdge&quot;&gt;
+    &lt;direction&gt;north&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-Down&quot;&gt;
+  &lt;action name=&quot;GrowToEdge&quot;&gt;
+    &lt;direction&gt;south&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-Left&quot;&gt;
+  &lt;action name=&quot;GrowToEdge&quot;&gt;
+    &lt;direction&gt;west&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-Right&quot;&gt;
+  &lt;action name=&quot;GrowToEdge&quot;&gt;
+    &lt;direction&gt;east&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;</code></pre><p>这样就可以使用Windows+Left/Right/Up/Down将窗口拉伸到一定方向的边<br>缘了。</p>
+<p>当然，上面的这些特定的移动在都不能满足需要的时候就需要自己手动调整窗<br>口的位置了：</p>
+<pre><code>&lt;keybind key=&quot;W-m&quot;&gt;
+  &lt;action name=&quot;Move&quot;/&gt;
+&lt;/keybind&gt;</code></pre><p>这样就可以先按Windows+m然后使用方向键或者鼠标来移动窗口的位置了。</p>
+<h1 id="窗口的其他操作"><a href="#窗口的其他操作" class="headerlink" title="窗口的其他操作"></a>窗口的其他操作<a id="orgheadline4"></a></h1><p>当然对窗口的一般化的操作都是支持的如最大化，最小化，全屏什么的：</p>
+<pre><code>&lt;keybind key=&quot;W-F4&quot;&gt;
+  &lt;action name=&quot;Close&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-F8&quot;&gt;
+  &lt;action name=&quot;Resize&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-F9&quot;&gt;
+  &lt;action name=&quot;Iconify&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-F10&quot;&gt;
+  &lt;action name=&quot;ToggleMaximizeFull&quot;/&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-F11&quot;&gt;
+  &lt;action name=&quot;ToggleDecorations&quot;/&gt;
+  &lt;action name=&quot;ToggleMaximizeFull&quot;/&gt;
+&lt;/keybind&gt;</code></pre><p>不过一般我很少使用最大化，常常使用的是水平方向或者垂直方向的单向最大<br>化窗口：</p>
+<pre><code>&lt;keybind key=&quot;W-h&quot;&gt;
+  &lt;action name=&quot;ToggleMaximize&quot;&gt;
+    &lt;direction&gt;horizontal&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-v&quot;&gt;
+  &lt;action name=&quot;ToggleMaximize&quot;&gt;
+    &lt;direction&gt;vertical&lt;/direction&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;</code></pre><p>这样就可以使用Windows+h和Windows+v来将窗口水平最大化和垂直最大化。</p>
+<h1 id="程序启动快捷键"><a href="#程序启动快捷键" class="headerlink" title="程序启动快捷键"></a>程序启动快捷键<a id="orgheadline5"></a></h1><p>下面是一些常用的的程序启动快捷键，包括启动XTerm, 锁屏，截屏等操作：</p>
+<pre><code>&lt;keybind key=&quot;W-q&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;startupnotify&gt;
+      &lt;enabled&gt;true&lt;/enabled&gt;
+      &lt;name&gt;XTerm&lt;/name&gt;
+    &lt;/startupnotify&gt;
+    &lt;command&gt;xterm&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-t&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;startupnotify&gt;
+      &lt;enabled&gt;true&lt;/enabled&gt;
+      &lt;name&gt;XTerm&lt;/name&gt;
+    &lt;/startupnotify&gt;
+    &lt;command&gt;xterm -e screen&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-l&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;startupnotify&gt;
+      &lt;enabled&gt;true&lt;/enabled&gt;
+      &lt;name&gt;XScreensaver&lt;/name&gt;
+    &lt;/startupnotify&gt;
+    &lt;command&gt;xscreensaver-command -lock&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;Print&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;command&gt;scrot -e &apos;mv $f ~/screenshot/&apos;&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;
+&lt;keybind key=&quot;W-Print&quot;&gt;
+  &lt;action name=&quot;Execute&quot;&gt;
+    &lt;command&gt;scrot -b -s -e &apos;mv $f ~/screenshot/&apos;&lt;/command&gt;
+  &lt;/action&gt;
+&lt;/keybind&gt;</code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2013/06/28/my-openbox-configuration/" data-id="cklr2sz3000087woq0fjo3o3h" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Desktop/" rel="tag">Desktop</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-use-awk-to-transpose-text-file" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/06/28/use-awk-to-transpose-text-file/" class="article-date">
+  <time datetime="2013-06-28T22:42:59.000Z" itemprop="datePublished">2013-06-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Tools/">Tools</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/06/28/use-awk-to-transpose-text-file/">Use Awk to transpose text file</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="前话"><a href="#前话" class="headerlink" title="前话"></a>前话<a id="orgheadline1"></a></h1><p>这段时间在做一些性能测试实验，经常使用bash，sed，awk 对实验结果做一<br>些自动化的分析。这样就顺便学了一把bash awk什么的。空间的时候就想了一<br>个使用awk对文本内容进行行列互换的脚本。</p>
+<h1 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文<a id="orgheadline3"></a></h1><p>比如现在有文件test.txt内容为：</p>
+<pre><code>11    12      13      14
+21    22      23      24
+31    32      33      34</code></pre><p>使用awk脚本转换后的内容则为：</p>
+<pre><code>11    21      31
+12    22      32
+13    23      33
+14    24      34</code></pre><h2 id="脚本conv-awk"><a href="#脚本conv-awk" class="headerlink" title="脚本conv.awk"></a>脚本conv.awk<a id="orgheadline2"></a></h2><pre><code>#!/usr/bin/awk -f
+
+BEGIN {
+  lines=0
+  cols=0
+}
+
+{
+  if (NF &gt; cols)
+    cols=NF
+  lines++
+  for (i=1; i&lt;=NF; i++)
+    data[NR, i]=$i
+}
+
+END {
+  for (i=1; i&lt;=cols; i++) {
+    for (j=1; j&lt;=lines; j++)
+      printf data[j,1]&quot;\t&quot;
+    printf &quot;\n&quot;
+  }
+}</code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2013/06/28/use-awk-to-transpose-text-file/" data-id="cklr2sz3a000j7woqaaoe1spi" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/awk/" rel="tag">awk</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-git-dropbox-backup" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/20/git-dropbox-backup/" class="article-date">
+  <time datetime="2012-03-20T14:42:59.000Z" itemprop="datePublished">2012-03-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Tools/">Tools</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/20/git-dropbox-backup/">私有git代码的备份</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="私有git代码的备份"><a href="#私有git代码的备份" class="headerlink" title="私有git代码的备份"></a>私有git代码的备份</h1><p>私有git代码托管在<a href="https://bitbucket.org" target="_blank" rel="noopener">bitbucket</a>上非常的方便，但自己还是要备份下的。Git的<br>hook就可以用来自动备份代码了。</p>
+<p>在project目录下的新建文件 ~.git/hooks/post-commit</p>
+<pre><code>#!/bin/sh
+
+project_name=${PWD##*/}
+git bundle create ~/data/Dropbox/repo/${project_name}.bundle \
+    --all --tags --branches</code></pre><p>然后chmod +x .git/hooks/post-commit。</p>
+<p>这样，在commit后就会自动的创建git bundle到指定的目录了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://zqlu.github.io/2012/03/20/git-dropbox-backup/" data-id="cklr2sz2y00077woqakf68hwn" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Git/" rel="tag">Git</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+  
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Desktop/">Desktop</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Frontend/">Frontend</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/OpenSource/">OpenSource</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Python/">Python</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Tools/">Tools</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Visualization/">Visualization</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/note/">note</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Desktop/" rel="tag">Desktop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NodeJS/" rel="tag">NodeJS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Visualization/" rel="tag">Visualization</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/awk/" rel="tag">awk</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/http/" rel="tag">http</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Desktop/" style="font-size: 10px;">Desktop</a> <a href="/tags/Git/" style="font-size: 10px;">Git</a> <a href="/tags/NodeJS/" style="font-size: 10px;">NodeJS</a> <a href="/tags/Visualization/" style="font-size: 20px;">Visualization</a> <a href="/tags/awk/" style="font-size: 10px;">awk</a> <a href="/tags/css/" style="font-size: 10px;">css</a> <a href="/tags/http/" style="font-size: 10px;">http</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">四月 2020</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">十二月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">十一月 2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">五月 2016</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">十二月 2015</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/06/">六月 2013</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/03/">三月 2012</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/04/15/python-service-thing/">[译]我们必须得谈谈 Python、Gunicorn、Gevent 这些事了</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/09/observable-introduction/">Observable 基础介绍</a>
+          </li>
+        
+          <li>
+            <a href="/2019/12/26/d3-scale-intro/">d3-scale-intro</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/03/why-use-lowercase-for-filename/">为什么 Google 代码规范推荐使用小写作为文件名</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/10/taobao-nodejs-mirror/">使用淘宝 NodeJS 镜像加速 Electron Node-Sass 的安装速度</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 zqlu<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>
